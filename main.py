@@ -1,6 +1,6 @@
 import tkinter as tk
 from ui.home_screen import HomeScreen
-# from ui.passport_screen import PassportScreen
+from ui.passport_screen import PassportScreen
 # from ui.visa_screen import VisaScreen
 # from ui.ticket_screen import TicketScreen
 

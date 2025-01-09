@@ -29,7 +29,7 @@ Taif Al-Salmi is a Windows desktop application designed to manage various servic
 ## Project Structure
 
 ```
-TaifAlsalmi/
+Taif-python/
 │
 ├── main.py                # Entry point of the application
 ├── services/              # Core logic and service handling

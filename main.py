@@ -1,6 +1,7 @@
 import tkinter as tk
 from ui.home_screen import HomeScreen
 from ui.passport_screen import PassportScreen
+from ui.UmrahScreen import UmrahScreen
 # from ui.visa_screen import VisaScreen
 # from ui.ticket_screen import TicketScreen
 
@@ -31,10 +32,17 @@ class MainApp(tk.Tk):
         home_button.pack(side=tk.LEFT, padx=10, pady=10)
 
         passport_button = tk.Button(
-            self.header_frame, text="Passport", bg="blue", fg="white", command=lambda: self.show_frame(PassportScreen)
+            self.header_frame, text="الجوازات", bg="blue", fg="white", command=lambda: self.show_frame(PassportScreen)
         )
         passport_button.pack(side=tk.LEFT, padx=10, pady=10)
 
+        #umrah
+        umrah_button = tk.Button(
+            self.header_frame, text="العمرة", bg="blue", fg="white", command=lambda: self.show_frame(UmrahScreen)
+        )
+        umrah_button.pack(side=tk.LEFT, padx=10, pady=10)
+        
+        # visa 
         visa_button = tk.Button(
             self.header_frame, text="Visa", bg="blue", fg="white", command=lambda: self.show_frame(VisaScreen)
         )

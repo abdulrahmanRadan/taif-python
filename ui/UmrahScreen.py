@@ -1,11 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
 from ui.add_umrah_screen import AddUmrahScreen
+from services.umrah_service import UmrahService
 
 class UmrahScreen(tk.Frame):
     def __init__(self, master):
         super().__init__(master, bg="white")
         self.master = master
+        self.service = UmrahService()  # إنشاء كائن من UmrahService
 
         # Search and Add New Section
         self.top_frame = tk.Frame(self, bg="white")
@@ -18,7 +20,7 @@ class UmrahScreen(tk.Frame):
         self.create_table_section()
 
         # Add New Screen (Initially hidden)
-        self.add_umrah_screen = AddUmrahScreen(self, self.show_main_screen)
+        self.add_umrah_screen = AddUmrahScreen(self, self.show_main_screen, self.service)
         self.add_umrah_screen.grid(row=1, column=0, sticky="nsew")
         self.add_umrah_screen.grid_remove()  # إخفاء واجهة الإضافة في البداية
 
@@ -36,10 +38,10 @@ class UmrahScreen(tk.Frame):
         self.search_entry.pack(side=tk.LEFT, padx=(0, 10))
         
         # Export Buttons
-        self.export_pdf_button = tk.Button(self.top_frame, text="Export to PDF", bg="green", fg="white", font=("Arial", 12), command=self.export_to_pdf)
+        self.export_pdf_button = tk.Button(self.top_frame, text="Export to PDF", bg="green", fg="white", font=("Arial", 12), command=self.service.export_to_pdf)
         self.export_pdf_button.pack(side=tk.LEFT, padx=(0, 5))
 
-        self.export_excel_button = tk.Button(self.top_frame, text="Export to Excel", bg="green", fg="white", font=("Arial", 12), command=self.export_to_excel)
+        self.export_excel_button = tk.Button(self.top_frame, text="Export to Excel", bg="green", fg="white", font=("Arial", 12), command=self.service.export_to_excel)
         self.export_excel_button.pack(side=tk.LEFT)
 
         # Add New Button
@@ -98,17 +100,12 @@ class UmrahScreen(tk.Frame):
 
         self.table.pack(fill=tk.BOTH, expand=True)
 
-        # Dummy Data
+        # Load Data
         self.populate_table()
 
     def populate_table(self):
-        """Populate the table with dummy data."""
-        data = [
-            (1, "محمد أحمد", "A12345678", "0123456789", "علي محمد", "987654321", "5000", "3000", "2000", "2023-11-01", "2023-11-10", "5", "مهم"),
-            (2, "فاطمة علي", "B87654321", "0987654321", "حسن أحمد", "123456789", "6000", "4000", "2000", "2023-11-05", "2023-11-15", "10", "غير مهم"),
-        ]
-
-        for item in data:
+        """Populate the table with data from the service."""
+        for item in self.service.get_all_data():
             self.table.insert("", tk.END, values=item)
 
     def add_to_table(self, data):
@@ -142,11 +139,3 @@ class UmrahScreen(tk.Frame):
         self.export_pdf_button.pack(side=tk.LEFT, padx=(0, 5))
         self.export_excel_button.pack(side=tk.LEFT)
         self.add_button.pack(side=tk.LEFT, padx=(20, 10))
-
-    def export_to_pdf(self):
-        """Handle exporting data to PDF."""
-        print("Export to PDF - Functionality not implemented yet.")
-
-    def export_to_excel(self):
-        """Handle exporting data to Excel."""
-        print("Export to Excel - Functionality not implemented yet.")

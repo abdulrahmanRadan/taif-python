@@ -1,11 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
-from datetime import datetime, timedelta
+from services.umrah_service import UmrahService
 
 class AddUmrahScreen(tk.Frame):
-    def __init__(self, master, return_callback):
-        super().__init__(master, bg="#f5f5f5")  # خلفية رمادية فاتحة
-        self.return_callback = return_callback  # Callback للرجوع إلى الشاشة السابقة
+    def __init__(self, master, return_callback, service):
+        super().__init__(master, bg="#f5f5f5")
+        self.return_callback = return_callback
+        self.service = service  # كائن الخدمة
 
         # Variables
         self.remaining_amount = tk.StringVar(value="0")
@@ -21,7 +22,7 @@ class AddUmrahScreen(tk.Frame):
 
         # Outer Frame with Scrollbars
         self.canvas = tk.Canvas(self, bg="#f5f5f5", highlightthickness=0)
-        self.canvas.pack(side=tk.RIGHT,fill=tk.BOTH, expand=True)
+        self.canvas.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         scroll_x = ttk.Scrollbar(self, orient=tk.HORIZONTAL, command=self.canvas.xview)
         scroll_x.pack(side=tk.BOTTOM, fill=tk.X)
@@ -124,7 +125,7 @@ class AddUmrahScreen(tk.Frame):
         try:
             cost = float(self.cost_entry.get())
             paid = float(self.paid_entry.get())
-            remaining = cost - paid
+            remaining = self.service.calculate_remaining_amount(cost, paid)
             self.remaining_amount.set(f"{remaining:.2f}")
         except ValueError:
             self.remaining_amount.set("0.00")
@@ -132,10 +133,9 @@ class AddUmrahScreen(tk.Frame):
     def calculate_days_left(self, event=None):
         """Calculate the days left based on the entry date."""
         try:
-            entry_date = datetime.strptime(self.entry_date_entry.get(), "%Y-%m-%d")
-            today = datetime.now()
-            delta = entry_date - today
-            self.days_left.set(f"{delta.days}")
+            entry_date = self.entry_date_entry.get()
+            days_left = self.service.calculate_days_left(entry_date)
+            self.days_left.set(f"{days_left}")
         except ValueError:
             self.days_left.set("0")
 
@@ -158,8 +158,8 @@ class AddUmrahScreen(tk.Frame):
             self.status_combobox.get(),  # Status
         )
 
-        # Add data to the table
-        self.master.add_to_table(data)
+        # Save data using the service
+        self.service.save_umrah_data(data, self.master)
 
         # Return to the main screen
         self.return_callback()

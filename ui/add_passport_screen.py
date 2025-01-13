@@ -22,87 +22,62 @@ class AddPassportScreen(tk.Frame):
         self.apply_styles()
 
         # Outer Frame
-        outer_frame = ttk.Frame(self, padding=20, style="Rounded.TFrame")
-        outer_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        outer_frame = ttk.Frame(self, padding=10, style="Rounded.TFrame")
+        outer_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         # Back Button
         back_button = ttk.Button(outer_frame, text="رجوع", style="Blue.TButton", command=self.return_callback)
-        back_button.grid(row=0, column=0, padx=10, pady=10, sticky="w")
+        back_button.grid(row=0, column=5, padx=5, pady=10, sticky="ew")  # تم تعديل sticky ليكون "ew" لتمديد الزر
 
-        # Name
-        ttk.Label(outer_frame, text="اسم الزبون:", style="Bold.TLabel").grid(row=1, column=0, padx=10, pady=10, sticky="e")
-        self.name_entry = ttk.Entry(outer_frame, font=("Arial", 12), width=25, style="Rounded.TEntry")
-        self.name_entry.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+        # Row 1
+        self.name_entry = self.create_field(outer_frame, "اسم الزبون:", row=1, column=5)
+        self.booking_date_entry = self.create_field(outer_frame, "تاريخ الحجز:", row=1, column=3, entry_var=self.booking_date)
+        self.type_combobox = self.create_field(outer_frame, "النوع:", row=1, column=1, combobox_values=["عادي", "مستعجل بيومه", "مستعجل عدن"])
 
-        # Booking Date
-        ttk.Label(outer_frame, text="تاريخ الحجز:", style="Bold.TLabel").grid(row=1, column=2, padx=10, pady=10, sticky="e")
-        self.booking_date_entry = ttk.Entry(outer_frame, textvariable=self.booking_date, font=("Arial", 12), width=25, style="Rounded.TEntry")
-        self.booking_date_entry.grid(row=1, column=3, padx=10, pady=10, sticky="w")
+        # Row 2
+        self.booking_price_entry = self.create_field(outer_frame, "التكلفة (سعر الحجز):", row=2, column=5)
+        self.purchase_price_entry = self.create_field(outer_frame, "سعر الشراء:", row=2, column=3, entry_var=self.purchase_price)
+        self.net_amount_label = self.create_field(outer_frame, "الصافي:", row=2, column=1, label_var=self.net_amount)
 
-        # Type (Dropdown)
-        ttk.Label(outer_frame, text="النوع:", style="Bold.TLabel").grid(row=2, column=0, padx=10, pady=10, sticky="e")
-        self.type_combobox = ttk.Combobox(outer_frame, values=["عادي", "مستعجل بيومه", "مستعجل عدن"], font=("Arial", 12), width=23, style="Rounded.TCombobox")
-        self.type_combobox.grid(row=2, column=1, padx=10, pady=10, sticky="w")
-        self.type_combobox.current(0)
+        # Row 3
+        self.paid_amount_entry = self.create_field(outer_frame, "الواصل:", row=3, column=5)
+        self.remaining_amount_label = self.create_field(outer_frame, "المتبقي:", row=3, column=3, label_var=self.remaining_amount)
+        self.status_combobox = self.create_field(outer_frame, "حالة الجواز:", row=3, column=1, combobox_values=["في الطباعة", "مرفوض", "تم التسليم"])
 
-        # Booking Price
-        ttk.Label(outer_frame, text="التكلفة (سعر الحجز):", style="Bold.TLabel").grid(row=2, column=2, padx=10, pady=10, sticky="e")
-        self.booking_price_entry = ttk.Entry(outer_frame, font=("Arial", 12), width=25, style="Rounded.TEntry")
-        self.booking_price_entry.grid(row=2, column=3, padx=10, pady=10, sticky="w")
-        self.booking_price_entry.bind("<KeyRelease>", self.calculate_net_amount)
-
-        # Purchase Price
-        ttk.Label(outer_frame, text="سعر الشراء:", style="Bold.TLabel").grid(row=3, column=0, padx=10, pady=10, sticky="e")
-        self.purchase_price_entry = ttk.Entry(outer_frame, textvariable=self.purchase_price, font=("Arial", 12), width=25, style="Rounded.TEntry")
-        self.purchase_price_entry.grid(row=3, column=1, padx=10, pady=10, sticky="w")
-        self.purchase_price_entry.bind("<KeyRelease>", self.calculate_net_amount)
-
-        # Net Amount
-        ttk.Label(outer_frame, text="الصافي:", style="Bold.TLabel").grid(row=3, column=2, padx=10, pady=10, sticky="e")
-        self.net_amount_label = ttk.Label(outer_frame, textvariable=self.net_amount, style="Bold.TLabel")
-        self.net_amount_label.grid(row=3, column=3, padx=10, pady=10, sticky="w")
-
-        # Paid Amount
-        ttk.Label(outer_frame, text="الواصل:", style="Bold.TLabel").grid(row=4, column=0, padx=10, pady=10, sticky="e")
-        self.paid_amount_entry = ttk.Entry(outer_frame, font=("Arial", 12), width=25, style="Rounded.TEntry")
-        self.paid_amount_entry.grid(row=4, column=1, padx=10, pady=10, sticky="w")
-        self.paid_amount_entry.bind("<KeyRelease>", self.calculate_remaining)
-
-        # Remaining Amount
-        ttk.Label(outer_frame, text="المتبقي:", style="Bold.TLabel").grid(row=4, column=2, padx=10, pady=10, sticky="e")
-        self.remaining_amount_label = ttk.Label(outer_frame, textvariable=self.remaining_amount, style="Bold.TLabel")
-        self.remaining_amount_label.grid(row=4, column=3, padx=10, pady=10, sticky="w")
-
-        # Passport Status (Dropdown)
-        ttk.Label(outer_frame, text="حالة الجواز:", style="Bold.TLabel").grid(row=5, column=0, padx=10, pady=10, sticky="e")
-        self.status_combobox = ttk.Combobox(outer_frame, values=["في الطباعة", "مرفوض", "تم التسليم"], font=("Arial", 12), width=23, style="Rounded.TCombobox")
-        self.status_combobox.grid(row=5, column=1, padx=10, pady=10, sticky="w")
-        self.status_combobox.current(0)
-
-        # Receipt Date
-        ttk.Label(outer_frame, text="تاريخ الاستلام:", style="Bold.TLabel").grid(row=5, column=2, padx=10, pady=10, sticky="e")
-        self.receipt_date_entry = ttk.Entry(outer_frame, font=("Arial", 12), width=25, style="Rounded.TEntry")
-        self.receipt_date_entry.grid(row=5, column=3, padx=10, pady=10, sticky="w")
-
-        # Receiver Name (Optional)
-        ttk.Label(outer_frame, text="اسم المستلم:", style="Bold.TLabel").grid(row=6, column=0, padx=10, pady=10, sticky="e")
-        self.receiver_name_entry = ttk.Entry(outer_frame, font=("Arial", 12), width=25, style="Rounded.TEntry")
-        self.receiver_name_entry.grid(row=6, column=1, padx=10, pady=10, sticky="w")
+        # Row 4
+        self.receipt_date_entry = self.create_field(outer_frame, "تاريخ الاستلام:", row=4, column=5)
+        self.receiver_name_entry = self.create_field(outer_frame, "اسم المستلم:", row=4, column=3)
 
         # Save Button
-        save_button = ttk.Button(outer_frame, text="حفظ", style="Blue.TButton", width=30, command=self.save)
-        save_button.grid(row=7, column=0, columnspan=4, pady=20)
+        save_button = ttk.Button(outer_frame, text="حفظ", style="Blue.TButton", width=50, command=self.save)
+        save_button.grid(row=5, column=0, columnspan=5, pady=20)  # زيادة pady هنا
+
+    def create_field(self, parent, label_text, row, column, entry_var=None, label_var=None, combobox_values=None):
+        """Helper function to create a label and its corresponding widget."""
+        ttk.Label(parent, text=label_text, style="Bold.TLabel").grid(row=row, column=column, padx=(10, 10), pady=10, sticky="ew")
+        if combobox_values is None:
+            if label_var is not None:
+                widget = ttk.Label(parent, textvariable=label_var, style="Bold.TLabel", justify="center")  # محاذاة النص في المنتصف
+                widget.grid( sticky="ew")
+            else:
+                widget = ttk.Entry(parent, font=("Arial", 12), width=30, style="Rounded.TEntry", textvariable=entry_var, justify="center")  # محاذاة النص في المنتصف
+            widget.grid(row=row, column=column - 1, padx=(10, 10), pady=10, sticky="ew")  # تم تعديل sticky ليكون "ew" لتمديد الحقل
+        else:
+            widget = ttk.Combobox(parent, values=combobox_values, font=("Arial", 12), width=23, style="Rounded.TCombobox", justify="center")  # محاذاة النص في المنتصف
+            widget.grid(row=row, column=column - 1, padx=(10, 10), pady=10, sticky="ew")  # تم تعديل sticky ليكون "ew" لتمديد الحقل
+            widget.current(0)
+        return widget
 
     def apply_styles(self):
         """Apply custom styles to the widgets."""
         style = ttk.Style(self)
 
         # Custom Frame Style (Rounded corners and shadow)
-        style.configure("Rounded.TFrame", background="#ffffff", borderwidth=2, relief="solid", bordercolor="#cccccc", padding=10)
-        style.map("Rounded.TFrame", background=[("active", "#f0f0f0")])
+        style.configure("Rounded.TFrame", background="#f3f3f3", borderwidth=2, relief="solid", bordercolor="#cccccc", padding=10)
+        style.map("Rounded.TFrame", background=[("active", "#f3f3f3")])
 
         # Custom Label Style (Bold)
-        style.configure("Bold.TLabel", background="#ffffff", font=("Arial", 12, 'bold'))
+        style.configure("Bold.TLabel", background="#f3f3f3", font=("Arial", 12, 'bold'))
 
         # Custom Entry Style (Rounded corners)
         style.configure("Rounded.TEntry", background="#ffffff", borderwidth=2, relief="solid", bordercolor="#cccccc", padding=5)
@@ -113,7 +88,7 @@ class AddPassportScreen(tk.Frame):
         style.map("Rounded.TCombobox", background=[("active", "#f0f0f0")])
 
         # Custom Button Style (Blue)
-        style.configure("Blue.TButton", background="#007bff", foreground="white", font=("Arial", 12, 'bold'), padding=10, width=30)
+        style.configure("Blue.TButton", background="#007bff", foreground="black", font=("Arial", 12, 'bold'), padding=10, width=30)
         style.map("Blue.TButton", background=[("active", "#0056b3")])
 
     def calculate_net_amount(self, event=None):
@@ -121,7 +96,7 @@ class AddPassportScreen(tk.Frame):
         try:
             purchase_price = float(self.purchase_price_entry.get())
             booking_price = float(self.booking_price_entry.get())
-            net_amount =   booking_price - purchase_price
+            net_amount = booking_price - purchase_price
             self.net_amount.set(f"{net_amount:.2f}")
         except ValueError:
             self.net_amount.set("0.00")
@@ -138,6 +113,24 @@ class AddPassportScreen(tk.Frame):
 
     def save(self):
         """Handle saving the new customer data."""
-        # Here you can add the logic to save the data to a database or file
-        print("Data Saved Successfully!")
-        self.return_callback()  # العودة إلى الشاشة السابقة بعد الحفظ
+        # Collect data from the form
+        data = (
+            len(self.master.table.get_children()) + 1,  # Auto-increment ID
+            self.name_entry.get(),  # Name
+            self.booking_date_entry.get(),  # Booking Date
+            self.type_combobox.get(),  # Type
+            self.booking_price_entry.get(),  # Booking Price
+            self.purchase_price_entry.get(),  # Purchase Price
+            self.net_amount.get(),  # Net Amount
+            self.paid_amount_entry.get(),  # Paid Amount
+            self.remaining_amount.get(),  # Remaining Amount
+            self.status_combobox.get(),  # Status
+            self.receipt_date_entry.get(),  # Receipt Date
+            self.receiver_name_entry.get(),  # Receiver Name
+        )
+
+        # Add data to the table
+        self.master.add_to_table(data)
+
+        # Return to the main screen
+        self.return_callback()

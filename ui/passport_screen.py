@@ -52,7 +52,7 @@ class PassportScreen(tk.Frame):
 
         # Table
         self.table = ttk.Treeview(
-            table_frame, columns=("ID", "Name", "Passport Number", "Status"),
+            table_frame, columns=("ID", "Name", "Booking Date", "Type", "Booking Price", "Purchase Price", "Net Amount", "Paid Amount", "Remaining Amount", "Status", "Receipt Date", "Receiver Name"),
             xscrollcommand=scroll_x.set, yscrollcommand=scroll_y.set, show="headings"
         )
 
@@ -65,13 +65,29 @@ class PassportScreen(tk.Frame):
         # Define Columns
         self.table.heading("ID", text="ID")
         self.table.heading("Name", text="Name")
-        self.table.heading("Passport Number", text="Passport Number")
+        self.table.heading("Booking Date", text="Booking Date")
+        self.table.heading("Type", text="Type")
+        self.table.heading("Booking Price", text="Booking Price")
+        self.table.heading("Purchase Price", text="Purchase Price")
+        self.table.heading("Net Amount", text="Net Amount")
+        self.table.heading("Paid Amount", text="Paid Amount")
+        self.table.heading("Remaining Amount", text="Remaining Amount")
         self.table.heading("Status", text="Status")
+        self.table.heading("Receipt Date", text="Receipt Date")
+        self.table.heading("Receiver Name", text="Receiver Name")
 
         self.table.column("ID", width=50)
-        self.table.column("Name", width=200)
-        self.table.column("Passport Number", width=150)
+        self.table.column("Name", width=150)
+        self.table.column("Booking Date", width=100)
+        self.table.column("Type", width=100)
+        self.table.column("Booking Price", width=100)
+        self.table.column("Purchase Price", width=100)
+        self.table.column("Net Amount", width=100)
+        self.table.column("Paid Amount", width=100)
+        self.table.column("Remaining Amount", width=100)
         self.table.column("Status", width=100)
+        self.table.column("Receipt Date", width=100)
+        self.table.column("Receiver Name", width=150)
 
         self.table.pack(fill=tk.BOTH, expand=True)
 
@@ -81,14 +97,16 @@ class PassportScreen(tk.Frame):
     def populate_table(self):
         """Populate the table with dummy data."""
         data = [
-            (1, "John Doe", "P1234567", "Valid"),
-            (2, "Jane Smith", "P7654321", "Expired"),
-            (3, "Ali Ahmed", "P2345678", "Valid"),
-            (4, "Fatima Khan", "P8765432", "Pending"),
+            (1, "John Doe", "2023-10-01", "عادي", "100", "80", "20", "50", "50", "Valid", "2023-10-05", "Ali"),
+            (2, "Jane Smith", "2023-10-02", "مستعجل", "150", "120", "30", "100", "50", "Pending", "2023-10-06", "Ahmed"),
         ]
 
         for item in data:
             self.table.insert("", tk.END, values=item)
+
+    def add_to_table(self, data):
+        """Add a new row to the table with the provided data."""
+        self.table.insert("", tk.END, values=data)
 
     def show_add_screen(self):
         """Show the add passport screen."""

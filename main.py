@@ -2,8 +2,10 @@ import tkinter as tk
 from ui.home_screen import HomeScreen
 from ui.passport_screen import PassportScreen
 from ui.UmrahScreen import UmrahScreen
-# from ui.visa_screen import VisaScreen
 # from ui.ticket_screen import TicketScreen
+
+# database
+from database.database_manager import DatabaseManager
 
 
 class MainApp(tk.Tk):
@@ -24,10 +26,21 @@ class MainApp(tk.Tk):
         # Start with HomeScreen
         self.show_frame(HomeScreen)
 
+        # database chicked
+        self.connact_database()
+    
+    def connact_database(self):
+        # database chicked
+        db_manager = DatabaseManager()
+        # Tables are created upon initialization
+        # Additional setup code can be added here
+        db_manager.close()
+        print("connacted database is successfily")
+
     def create_nav_buttons(self):
         """Creates navigation buttons in the header."""
         home_button = tk.Button(
-            self.header_frame, text="Home", bg="blue", fg="white", command=lambda: self.show_frame(HomeScreen)
+            self.header_frame, text="الصفحة الرئيسية ", bg="blue", fg="white", command=lambda: self.show_frame(HomeScreen)
         )
         home_button.pack(side=tk.LEFT, padx=10, pady=10)
 
@@ -42,12 +55,7 @@ class MainApp(tk.Tk):
         )
         umrah_button.pack(side=tk.LEFT, padx=10, pady=10)
         
-        # visa 
-        visa_button = tk.Button(
-            self.header_frame, text="Visa", bg="blue", fg="white", command=lambda: self.show_frame(VisaScreen)
-        )
-        visa_button.pack(side=tk.LEFT, padx=10, pady=10)
-
+        # ticket 
         ticket_button = tk.Button(
             self.header_frame, text="Ticket", bg="blue", fg="white", command=lambda: self.show_frame(TicketScreen)
         )

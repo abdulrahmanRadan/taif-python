@@ -22,3 +22,5 @@ sdist/
 var/
 wheels/
 *.
+
+*.db

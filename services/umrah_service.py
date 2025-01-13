@@ -1,12 +1,21 @@
 from datetime import datetime, timedelta
+from database.database_manager import DatabaseManager
 
 class UmrahService:
     def __init__(self):
-        self.data = []  # قائمة لتخزين بيانات المعتمرين
+        self.db_manager = DatabaseManager()
 
     def add_umrah_data(self, data):
         """إضافة بيانات معتمر جديدة."""
-        self.data.append(data)
+        columns = [
+            "name", "passport_number", "phone_number", "sponsor_name",
+            "sponsor_number", "cost", "paid", "remaining_amount",
+            "entry_date", "exit_date", "days_left", "status"
+        ]
+        # self.data.append(data)
+        data_dict = dict(zip(columns, data[1:]))  # convert data into dictionary
+        self.db_manager.insert("Umrah", **data_dict)
+
 
     def calculate_remaining_amount(self, cost, paid):
         """حساب المبلغ المتبقي."""
@@ -27,11 +36,12 @@ class UmrahService:
 
     def get_all_data(self):
         """الحصول على جميع بيانات المعتمرين."""
-        data = [
-            (1, "محمد أحمد", "A12345678", "0123456789", "علي محمد", "987654321", "5000", "3000", "2000", "2023-11-01", "2023-11-10", "5", "مهم"),
-            (2, "فاطمة علي", "B87654321", "0987654321", "حسن أحمد", "123456789", "6000", "4000", "2000", "2023-11-05", "2023-11-15", "10", "غير مهم"),
-        ]
-        return data
+        # data = [
+        #     (1, "محمد أحمد", "A12345678", "0123456789", "علي محمد", "987654321", "5000", "3000", "2000", "2023-11-01", "2023-11-10", "5", "مهم"),
+        #     (2, "فاطمة علي", "B87654321", "0987654321", "حسن أحمد", "123456789", "6000", "4000", "2000", "2023-11-05", "2023-11-15", "10", "غير مهم"),
+        # ]
+        # return data
+        return self.db_manager.select("Umrah")
 
     def export_to_pdf(self):
         """تصدير البيانات إلى PDF."""

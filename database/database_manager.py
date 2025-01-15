@@ -28,7 +28,7 @@ class DatabaseManager:
                 status TEXT,
                 receipt_date TEXT,
                 receiver_name TEXT,
-                currency TEXT,                    -- نوع العمله 
+                currency TEXT                  -- نوع العمله 
             """,
             "Umrah": """
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,7 +43,7 @@ class DatabaseManager:
                 entry_date TEXT,
                 exit_date TEXT,
                 status TEXT,
-                currency TEXT,                    -- نوع العمله 
+                currency TEXT                    -- نوع العمله 
             """,
             "Trips": """
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -41,7 +41,6 @@ class DatabaseManager:
                 remaining_amount REAL,
                 entry_date TEXT,
                 exit_date TEXT,
-                days_left INTEGER,
                 status TEXT
             """,
             "Trips": """

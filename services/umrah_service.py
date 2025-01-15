@@ -1,7 +1,6 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from database.database_manager import DatabaseManager
 from services.validator import Validator 
-
 
 class UmrahService:
     def __init__(self):
@@ -13,16 +12,15 @@ class UmrahService:
         columns = [
             "name", "passport_number", "phone_number", "sponsor_name",
             "sponsor_number", "cost", "paid", "remaining_amount",
-            "entry_date", "exit_date", "days_left", "status"
+            "entry_date", "exit_date", "status"
         ]
-        # self.data.append(data)
-        data_dict = dict(zip(columns, data[1:]))  # convert data into dictionary
+        data_dict = dict(zip(columns, data[1:]))  # تحويل البيانات إلى قاموس
         rules = {
             "name": ["required", "min:3", "max:50", "string"],
             "passport_number": ["required", "min:8", "max:20", "string"],
-            "phone_number": [ "min:8",  "phone"],
-            "sponsor_name": [ "string"],
-            "sponsor_number": ["phone"],
+            "phone_number": ["required", "phone:9"],
+            "sponsor_name": ["string"],
+            "sponsor_number": ["required","phone:9"],
             "cost": ["required", "numeric"],
             "paid": ["required", "numeric"],
             "remaining_amount": ["required", "numeric"],
@@ -49,24 +47,40 @@ class UmrahService:
         except ValueError:
             return 0.00
 
-    def calculate_days_left(self, entry_date):
-        """حساب الأيام المتبقية حتى تاريخ الدخول."""
+    def calculate_days_left(self, entry_date, exit_date):
+        """حساب الأيام المتبقية بناءً على تاريخ الدخول وتاريخ الخروج."""
         try:
-            entry_date = datetime.strptime(entry_date, "%Y-%m-%d")
-            today = datetime.now()
-            delta = entry_date - today
-            return delta.days
-        except ValueError:
+            entry_date = str(entry_date)
+            exit_date = str(exit_date)
+            
+            entry_date = datetime.strptime(entry_date, "%Y-%m-%d").date()
+            exit_date = datetime.strptime(exit_date, "%Y-%m-%d").date()
+            today = datetime.now().date()
+
+            if entry_date <= today:  # إذا كان تاريخ الدخول قد مر
+                days_left = (exit_date - today).days
+            else:  # إذا كان تاريخ الدخول في المستقبل
+                days_left = (exit_date - entry_date).days
+
+            return max(days_left, 0)  # تجنب القيم السالبة
+        except ValueError as e:
+            print(f"Error calculating days left: {e}")
             return 0
 
     def get_all_data(self):
-        """الحصول على جميع بيانات المعتمرين."""
-        # data = [
-        #     (1, "محمد أحمد", "A12345678", "0123456789", "علي محمد", "987654321", "5000", "3000", "2000", "2023-11-01", "2023-11-10", "5", "مهم"),
-        #     (2, "فاطمة علي", "B87654321", "0987654321", "حسن أحمد", "123456789", "6000", "4000", "2000", "2023-11-05", "2023-11-15", "10", "غير مهم"),
-        # ]
-        # return data
-        return self.db_manager.select("Umrah")
+        """الحصول على جميع بيانات المعتمرين مع حساب عدد الأيام المتبقية."""
+        data = self.db_manager.select("Umrah")
+        updated_data = []
+        for record in data:
+            # تحويل البيانات إلى قائمة لتعديلها
+            record_list = list(record)
+            # حساب عدد الأيام المتبقية
+            days_left = self.calculate_days_left(record_list[9], record_list[10])  # تاريخ الدخول (8) وتاريخ الخروج (9)
+            # إضافة عدد الأيام المتبقية إلى السجل
+            # print(days_left)
+            record_list.append(days_left)
+            updated_data.append(tuple(record_list))
+        return updated_data
 
     def export_to_pdf(self):
         """تصدير البيانات إلى PDF."""

@@ -93,6 +93,6 @@ class Validator:
 
     def rule_phone(self, value, _):
         """التحقق من أن القيمة رقم هاتف صحيح."""
-        if not value.isdigit() or len(value) != 8:
-            return "يجب أن تكون القيمة رقم هاتف صحيح (10 أرقام)."
+        if not value.isdigit() or len(value) != 9:
+            return "يجب أن تكون القيمة رقم هاتف صحيح"
         return None

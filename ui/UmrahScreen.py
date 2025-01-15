@@ -59,7 +59,7 @@ class UmrahScreen(tk.Frame):
 
         # Table
         self.table = ttk.Treeview(
-            table_frame, columns=("ID", "Name", "Passport Number", "Phone Number", "Sponsor Name", "Sponsor Number", "Cost", "Paid", "Remaining", "Entry Date", "Exit Date", "Days Left", "Status"),
+            table_frame, columns=("ID", "Name", "Passport Number", "Phone Number", "Sponsor Name", "Sponsor Number", "Cost", "Paid", "Remaining", "Entry Date", "Exit Date", "Status",  "Days Left"),
             xscrollcommand=scroll_x.set, yscrollcommand=scroll_y.set, show="headings"
         )
 
@@ -106,6 +106,8 @@ class UmrahScreen(tk.Frame):
     def populate_table(self):
         """Populate the table with data from the service."""
         for item in self.service.get_all_data():
+            # print(item[13])
+            # print(f"Item to insert: {item}")
             self.table.insert("", tk.END, values=item)
 
     def add_to_table(self, data):

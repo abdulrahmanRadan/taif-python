@@ -11,7 +11,6 @@ class AddUmrahScreen(tk.Frame):
 
         # Variables
         self.remaining_amount = tk.StringVar(value="0")
-        self.days_left = tk.StringVar(value="0")
 
         # Create Widgets
         self.create_widgets()
@@ -67,8 +66,7 @@ class AddUmrahScreen(tk.Frame):
         self.exit_date_entry = self.create_date_field(outer_frame, "تاريخ الخروج", row=5, column=2)
 
         # Row 6
-        self.days_left_label = self.create_field(outer_frame, "عدد الأيام المتبقية", row=6, column=0, label_var=self.days_left)
-        self.status_combobox = self.create_field(outer_frame, "الحالة", row=6, column=2, combobox_values=["مهم", "غير مهم"])
+        self.status_combobox = self.create_field(outer_frame, "الحالة", row=6, column=0, combobox_values=["مهم", "غير مهم"])
 
         # Save Button
         save_button = ttk.Button(outer_frame, text="حفظ", style="Blue.TButton", width=50, command=self.save)
@@ -139,17 +137,9 @@ class AddUmrahScreen(tk.Frame):
             paid = float(self.paid_entry.get())
             remaining = self.service.calculate_remaining_amount(cost, paid)
             self.remaining_amount.set(f"{remaining:.2f}")
+            # print(type(self.remaining_amount))
         except ValueError:
             self.remaining_amount.set("0.00")
-
-    def calculate_days_left(self, event=None):
-        """Calculate the days left based on the entry date."""
-        try:
-            entry_date = self.entry_date_entry.get_date().strftime("%Y-%m-%d")
-            days_left = self.service.calculate_days_left(entry_date)
-            self.days_left.set(f"{days_left}")
-        except ValueError:
-            self.days_left.set("0")
 
     def save(self):
         """Handle saving the new umrah data."""
@@ -161,12 +151,11 @@ class AddUmrahScreen(tk.Frame):
             self.phone_number_entry.get(),  # Phone Number
             self.sponsor_name_entry.get(),  # Sponsor Name
             self.sponsor_number_entry.get(),  # Sponsor Number
-            self.cost_entry.get(),  # Cost
-            self.paid_entry.get(),  # Paid
-            self.remaining_amount.get(),  # Remaining
+            float(self.cost_entry.get()),  # Cost
+            float(self.paid_entry.get()),  # Paid
+            float(self.remaining_amount.get()),  # Remaining
             self.entry_date_entry.get_date().strftime("%Y-%m-%d"),  # Entry Date
             self.exit_date_entry.get_date().strftime("%Y-%m-%d"),  # Exit Date
-            self.days_left.get(),  # Days Left
             self.status_combobox.get(),  # Status
         )
 

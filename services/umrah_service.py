@@ -1,9 +1,12 @@
 from datetime import datetime, timedelta
 from database.database_manager import DatabaseManager
+from services.validator import Validator 
+
 
 class UmrahService:
     def __init__(self):
         self.db_manager = DatabaseManager()
+        self.validator = Validator()  # تهيئة Validator
 
     def add_umrah_data(self, data):
         """إضافة بيانات معتمر جديدة."""
@@ -14,8 +17,30 @@ class UmrahService:
         ]
         # self.data.append(data)
         data_dict = dict(zip(columns, data[1:]))  # convert data into dictionary
-        self.db_manager.insert("Umrah", **data_dict)
-
+        rules = {
+            "name": ["required", "min:3", "max:50", "string"],
+            "passport_number": ["required", "min:8", "max:20", "string"],
+            "phone_number": [ "min:8",  "phone"],
+            "sponsor_name": [ "string"],
+            "sponsor_number": ["phone"],
+            "cost": ["required", "numeric"],
+            "paid": ["required", "numeric"],
+            "remaining_amount": ["required", "numeric"],
+            "entry_date": ["required"],
+            "exit_date": ["required"],
+            "status": ["required"]
+        }
+        
+        # التحقق من صحة البيانات
+        if self.validator.validate(data_dict, rules):
+            self.db_manager.insert("Umrah", **data_dict)
+            return True, "تمت إضافة البيانات بنجاح."
+        else:
+            errors = self.validator.get_errors()
+            error_message = "فشل التحقق من البيانات:\n"
+            for field, field_errors in errors.items():
+                error_message += f"- {field}: {', '.join(field_errors)}\n"
+            return False, error_message
 
     def calculate_remaining_amount(self, cost, paid):
         """حساب المبلغ المتبقي."""
@@ -53,5 +78,7 @@ class UmrahService:
 
     def save_umrah_data(self, data, master):
         """حفظ بيانات المعتمر وإضافتها إلى الجدول."""
-        self.add_umrah_data(data)
-        master.add_to_table(data)
+        success, message = self.add_umrah_data(data)
+        if success:
+            master.add_to_table(data)
+        return success, message

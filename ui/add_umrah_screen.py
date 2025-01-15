@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from services.umrah_service import UmrahService
 
 class AddUmrahScreen(tk.Frame):
@@ -159,7 +159,9 @@ class AddUmrahScreen(tk.Frame):
         )
 
         # Save data using the service
-        self.service.save_umrah_data(data, self.master)
-
-        # Return to the main screen
-        self.return_callback()
+        success, message = self.service.save_umrah_data(data, self.master)
+        if success:
+            messagebox.showinfo("نجاح", message)
+            self.return_callback()  # العودة إلى الشاشة الرئيسية
+        else:
+            messagebox.showerror("خطأ", message)

@@ -28,6 +28,7 @@ class PassportScreen(tk.Frame):
 
         self.search_entry = tk.Entry(self.top_frame, font=("Arial", 12), width=30)
         self.search_entry.pack(side=tk.LEFT, padx=(0, 10))
+        self.search_entry.bind("<KeyRelease>", self.on_search)  # ربط حقل البحث بدالة البحث
 
         self.export_pdf_button = tk.Button(self.top_frame, text="تصدير إلى PDF", bg="green", fg="white", font=("Arial", 12), command=self.service.export_to_pdf)
         self.export_pdf_button.pack(side=tk.LEFT, padx=(0, 5))
@@ -65,13 +66,29 @@ class PassportScreen(tk.Frame):
         self.table.pack(fill=tk.BOTH, expand=True)
         self.populate_table()
 
-    def populate_table(self):
-        for item in self.service.get_all_data():  # استخدام المولد لاسترجاع البيانات
+    def populate_table(self, data=None):
+        """
+        تعبئة الجدول بالبيانات.
+        """
+        self.table.delete(*self.table.get_children())  # مسح الجدول الحالي
+        data = data if data is not None else self.service.get_all_data()
+        for item in data:
             self.table.insert("", tk.END, values=item)
+
+    def on_search(self, event=None):
+        """
+        البحث عند تغيير نص حقل البحث.
+        """
+        search_term = self.search_entry.get().strip()
+        if search_term:
+            results = self.service.search_data(search_term)
+        else:
+            results = self.service.get_all_data()
+        self.populate_table(results)
 
     def add_to_table(self, data):
         formatted_data = self.service.merge_currency_with_amounts(data)  # دمج العملة مع الأعمدة
-        formatted_data = formatted_data[:11]  # إزالة العمود رقم 11 (العملة)
+        formatted_data = formatted_data[:12]  # إزالة العمود رقم 11 (العملة)
         self.table.insert("", tk.END, values=formatted_data)
 
     def show_add_screen(self):

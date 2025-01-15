@@ -1,9 +1,11 @@
 from database.database_manager import DatabaseManager
+from database.SearchManager import SearchManager
 from services.validator import Validator
 
 class PassportService:
     def __init__(self):
         self.db_manager = DatabaseManager()
+        self.search_manager = SearchManager()
         self.validator = Validator()
 
     def add_passport_data(self, data):
@@ -61,8 +63,6 @@ class PassportService:
         دمج نص العملة مع قيم الأعمدة المالية.
         """
         currency_text = self.format_currency(row[11])  # تحويل رمز العملة إلى نص
-        # print(f"row[3] : ", row[3])
-        # print(f"row[4] : ", row[4])
         row = list(row)
         row[4] = f"{row[4]} {currency_text}"  # booking_price
         row[5] = f"{row[5]} {currency_text}"  # purchase_price
@@ -73,7 +73,7 @@ class PassportService:
 
     def get_all_data(self):
         """
-        استرجاع البيانات من قاعدة البيانات وتحويل الأرقام إلى نصوص عند العرض.
+        استرجاع جميع البيانات من قاعدة البيانات.
         """
         data = self.db_manager.select("Passports")
         formatted_data = []
@@ -83,6 +83,24 @@ class PassportService:
             row[9] = self.format_status(row[9])  # تحويل حالة الجواز
             formatted_row = self.merge_currency_with_amounts(row)  # دمج العملة مع الأعمدة
             formatted_data.append(formatted_row[:12])  # إزالة العمود رقم 11 (العملة)
+        return formatted_data
+
+    def search_data(self, search_term: str):
+        """
+        البحث في قاعدة البيانات باستخدام مصطلح البحث.
+        """
+        if not search_term:
+            return self.get_all_data()
+
+        # البحث في الأعمدة "name" و "receiver_name"
+        results = self.search_manager.search("Passports", ["name", "receiver_name", "status", "type"], search_term)
+        formatted_data = []
+        for row in results:
+            row = list(row.values())
+            row[3] = self.format_type(row[3])  # تحويل نوع الجواز
+            row[9] = self.format_status(row[9])  # تحويل حالة الجواز
+            formatted_row = self.merge_currency_with_amounts(row)  # دمج العملة مع الأعمدة
+            formatted_data.append(formatted_row[:12])  # إزالة العمود رقم 12 (العملة)
         return formatted_data
 
     def export_to_pdf(self):

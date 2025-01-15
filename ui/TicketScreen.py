@@ -7,7 +7,7 @@ class TicketScreen(tk.Frame):
     def __init__(self, master):
         super().__init__(master, bg="white")
         self.master = master
-        self.service = TicketService()  # إنشاء كائن الخدمة
+        self.service = TicketService(self)  # إنشاء كائن الخدمة
 
         self.top_frame = tk.Frame(self, bg="white")
         self.top_frame.grid(row=0, column=0, sticky="ew", pady=10, padx=10)

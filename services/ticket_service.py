@@ -1,12 +1,14 @@
 from database.database_manager import DatabaseManager
 from services.validator import Validator
 from database.SearchManager import SearchManager
+from reports.ticket_exporter import TicketExporter 
 
 class TicketService:
-    def __init__(self):
+    def __init__(self, master):
         self.db_manager = DatabaseManager()
         self.search_manager = SearchManager()
         self.validator = Validator()
+        self.master = master
 
     def add_ticket_data(self, data):
         columns = [
@@ -89,7 +91,11 @@ class TicketService:
         print("Export to PDF - Functionality not implemented yet.")
 
     def export_to_excel(self):
-        print("Export to Excel - Functionality not implemented yet.")
+        """
+        فتح نافذة تصدير البيانات إلى Excel.
+        """
+        export_screen = TicketExporter(self.master)
+        # print("Export to Excel - Functionality not implemented yet.")
 
     def save_ticket_data(self, data, master):
         success, message = self.add_ticket_data(data)

@@ -45,17 +45,19 @@ class DatabaseManager:
             """,
             "Trips": """
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT,
-                passport_number TEXT,
-                from_place TEXT,
-                to_place TEXT,
-                booking_company TEXT,
-                amount REAL,
-                agent TEXT,
-                net_amount REAL,
-                trip_date TEXT,
-                office_name TEXT
+                name TEXT,                        -- اسم الشخص
+                passport_number TEXT,             -- رقم الجواز
+                from_place TEXT,                  -- مكان المغادرة
+                to_place TEXT,                    -- مكان الوجهة
+                booking_company TEXT,             -- اسم شركة النقل
+                amount REAL,                      -- المبلغ الكلي
+                currency TEXT,                    -- نوع العمله 
+                agent TEXT,                       -- المبلغ للوكيل
+                net_amount REAL,                  -- المبلغ الصافي (يُحسب تلقائيًا)
+                trip_date TEXT,                   -- تاريخ الرحلة
+                office_name TEXT                  -- اسم المكتب (مكتبنا، الوادي، الطايف)
             """
+
         }
         for table_name, columns in tables.items():
             self.create_table(table_name, columns)

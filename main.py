@@ -2,7 +2,7 @@ import tkinter as tk
 from ui.home_screen import HomeScreen
 from ui.passport_screen import PassportScreen
 from ui.UmrahScreen import UmrahScreen
-# from ui.ticket_screen import TicketScreen
+from ui.TicketScreen import TicketScreen
 
 # database
 from database.database_manager import DatabaseManager
@@ -57,7 +57,7 @@ class MainApp(tk.Tk):
         
         # ticket 
         ticket_button = tk.Button(
-            self.header_frame, text="Ticket", bg="blue", fg="white", command=lambda: self.show_frame(TicketScreen)
+            self.header_frame, text="الحجوزات", bg="blue", fg="white", command=lambda: self.show_frame(TicketScreen)
         )
         ticket_button.pack(side=tk.LEFT, padx=10, pady=10)
 

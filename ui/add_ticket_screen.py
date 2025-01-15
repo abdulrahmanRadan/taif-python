@@ -41,8 +41,8 @@ class AddTicketScreen(tk.Frame):
         self.name_entry = self.create_field(outer_frame, "الاسم", row=1, column=0)
         self.passport_number_entry = self.create_field(outer_frame, "رقم الجواز", row=1, column=2)
 
-        self.from_place_entry = self.create_field(outer_frame, "من", row=2, column=0)
-        self.to_place_entry = self.create_field(outer_frame, "إلى", row=2, column=2)
+        self.from_place_entry = self.create_field(outer_frame, "من مدينه ", row=2, column=0)
+        self.to_place_entry = self.create_field(outer_frame, "إلى مدينه", row=2, column=2)
 
         self.company_entry = self.create_field(outer_frame, "الشركة", row=3, column=0)
         self.amount_entry = self.create_field(outer_frame, "المبلغ", row=3, column=2)

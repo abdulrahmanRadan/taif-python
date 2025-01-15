@@ -1,9 +1,11 @@
 from database.database_manager import DatabaseManager
 from services.validator import Validator
+from database.SearchManager import SearchManager
 
 class TicketService:
     def __init__(self):
         self.db_manager = DatabaseManager()
+        self.search_manager = SearchManager()
         self.validator = Validator()
 
     def add_ticket_data(self, data):
@@ -67,6 +69,21 @@ class TicketService:
         for row in data:
             formatted_row = self.merge_currency_with_amounts(row)  # دمج العملة مع الأعمدة
             yield formatted_row[:7] + formatted_row[8:]  # إزالة العمود رقم 6
+
+    def search_data(self, search_term: str):
+        """
+        البحث في قاعدة البيانات باستخدام مصطلح البحث.
+        """
+        if not search_term:
+            return self.get_all_data()
+        # the table "name", "passport_number", "from_place" and "to_place"
+        results = self.search_manager.search("Trips", ["name", "passport_number", "from_place", "to_place", "booking_company", "amount"], search_term)
+        formatted_data = []
+        for row in results:
+            row = list(row.values())
+            formatted_row = self.merge_currency_with_amounts(row)
+            yield formatted_row[:7] + formatted_row[8:]
+
 
     def export_to_pdf(self):
         print("Export to PDF - Functionality not implemented yet.")

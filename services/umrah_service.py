@@ -1,10 +1,12 @@
 from datetime import datetime
 from database.database_manager import DatabaseManager
+from database.SearchManager import SearchManager
 from services.validator import Validator 
 
 class UmrahService:
     def __init__(self):
         self.db_manager = DatabaseManager()
+        self.search_manager = SearchManager()
         self.validator = Validator()  # تهيئة Validator
 
     def add_umrah_data(self, data):
@@ -20,7 +22,7 @@ class UmrahService:
             "passport_number": ["required", "min:8", "max:20", "string"],
             "phone_number": ["required", "phone:9"],
             "sponsor_name": ["string"],
-            "sponsor_number": ["required","phone:9"],
+            "sponsor_number": ["phone:9"],
             "cost": ["required", "numeric"],
             "paid": ["required", "numeric"],
             "remaining_amount": ["required", "numeric"],
@@ -81,6 +83,22 @@ class UmrahService:
             record_list.append(days_left)
             updated_data.append(tuple(record_list))
         return updated_data
+
+    def search_data(self, search_term: str):
+        """
+        البحث في قاعدة البيانات باستخدام مصطلح البحث.
+        """
+        if not search_term:
+            return self.get_all_data()
+        # the table "name", "passport_number", "phone_number", "sponsor_number", "sponsor_name"
+        results = self.search_manager.search("Umrah", ["name", "passport_number", "phone_number","sponsor_number", "sponsor_name"], search_term)
+        formatted_data = []
+        for row in results:
+            row_data = list(row.values())
+            days_left = self.calculate_days_left(row_data[9], row_data[10])
+            row_data.append(days_left)
+            formatted_data.append(tuple(row_data))
+        return formatted_data
 
     def export_to_pdf(self):
         """تصدير البيانات إلى PDF."""

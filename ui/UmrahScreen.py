@@ -36,7 +36,8 @@ class UmrahScreen(tk.Frame):
         
         self.search_entry = tk.Entry(self.top_frame, font=("Arial", 12), width=30)
         self.search_entry.pack(side=tk.LEFT, padx=(0, 10))
-        
+        self.search_entry.bind("<KeyRelease>", self.on_search)
+
         # Export Buttons
         self.export_pdf_button = tk.Button(self.top_frame, text="Export to PDF", bg="green", fg="white", font=("Arial", 12), command=self.service.export_to_pdf)
         self.export_pdf_button.pack(side=tk.LEFT, padx=(0, 5))
@@ -103,13 +104,26 @@ class UmrahScreen(tk.Frame):
         # Load Data
         self.populate_table()
 
-    def populate_table(self):
+    def populate_table(self, data=None):
         """Populate the table with data from the service."""
-        for item in self.service.get_all_data():
+        self.table.delete(*self.table.get_children())
+        data = data if data is not None else self.service.get_all_data()
+
+        for item in data:
             # print(item[13])
             # print(f"Item to insert: {item}")
             self.table.insert("", tk.END, values=item)
 
+    def on_search(self, event=None):
+        """
+        البحث عند تغيير نص حقل البحث.
+        """
+        search_term = self.search_entry.get().strip()
+        if search_term:
+            results = self.service.search_data(search_term)
+        else:
+            results = self.service.get_all_data()
+        self.populate_table(results)
     def add_to_table(self, data):
         """Add a new row to the table with the provided data."""
         self.table.insert("", tk.END, values=data)

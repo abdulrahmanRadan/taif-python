@@ -52,7 +52,7 @@ class TicketService:
         دمج نص العملة مع قيم الأعمدة "المبلغ"، "للوكيل"، و"الصافي".
         """
         currency_text = self.format_currency(row[7])  # تحويل رمز العملة إلى نص
-        print(row[7])
+        # print(row[7])
         row = list(row)
         row[6] = f"{row[6]} {currency_text}"  # المبلغ
         row[8] = f"{row[8]} {currency_text}"  # للوكيل

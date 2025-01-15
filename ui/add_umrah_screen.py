@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from tkcalendar import DateEntry  # استيراد DateEntry
 from services.umrah_service import UmrahService
 
 class AddUmrahScreen(tk.Frame):
@@ -54,14 +55,16 @@ class AddUmrahScreen(tk.Frame):
         # Row 3
         self.sponsor_number_entry = self.create_field(outer_frame, "رقم الضمين", row=3, column=0)
         self.cost_entry = self.create_field(outer_frame, "التكلفة", row=3, column=2)
+        self.cost_entry.bind("<KeyRelease>", self.calculate_remaining)  # ربط حدث لحساب الباقي
 
         # Row 4
         self.paid_entry = self.create_field(outer_frame, "الواصل", row=4, column=0)
+        self.paid_entry.bind("<KeyRelease>", self.calculate_remaining)  # ربط حدث لحساب الباقي
         self.remaining_amount_label = self.create_field(outer_frame, "الباقي", row=4, column=2, label_var=self.remaining_amount)
 
         # Row 5
-        self.entry_date_entry = self.create_field(outer_frame, "تاريخ الدخول", row=5, column=0)
-        self.exit_date_entry = self.create_field(outer_frame, "تاريخ الخروج", row=5, column=2)
+        self.entry_date_entry = self.create_date_field(outer_frame, "تاريخ الدخول", row=5, column=0)
+        self.exit_date_entry = self.create_date_field(outer_frame, "تاريخ الخروج", row=5, column=2)
 
         # Row 6
         self.days_left_label = self.create_field(outer_frame, "عدد الأيام المتبقية", row=6, column=0, label_var=self.days_left)
@@ -88,6 +91,15 @@ class AddUmrahScreen(tk.Frame):
             widget = ttk.Combobox(parent, values=combobox_values, font=("Arial", 12), width=23, style="Rounded.TCombobox", justify="center")
             widget.grid(row=row, column=column, padx=(5, 5), pady=10, sticky="ew")
             widget.current(0)
+
+        # وضع الـ Label على اليمين من الحقل
+        ttk.Label(parent, text=label_text, style="Bold.TLabel").grid(row=row, column=column + 1, padx=(10, 10), pady=10, sticky="ew")
+        return widget
+
+    def create_date_field(self, parent, label_text, row, column):
+        """Helper function to create a date entry field."""
+        widget = DateEntry(parent, font=("Arial", 12), width=25, background="darkblue", foreground="white", borderwidth=2, date_pattern="yyyy-mm-dd")
+        widget.grid(row=row, column=column, padx=(5, 5), pady=10, sticky="ew")
 
         # وضع الـ Label على اليمين من الحقل
         ttk.Label(parent, text=label_text, style="Bold.TLabel").grid(row=row, column=column + 1, padx=(10, 10), pady=10, sticky="ew")
@@ -133,7 +145,7 @@ class AddUmrahScreen(tk.Frame):
     def calculate_days_left(self, event=None):
         """Calculate the days left based on the entry date."""
         try:
-            entry_date = self.entry_date_entry.get()
+            entry_date = self.entry_date_entry.get_date().strftime("%Y-%m-%d")
             days_left = self.service.calculate_days_left(entry_date)
             self.days_left.set(f"{days_left}")
         except ValueError:
@@ -152,8 +164,8 @@ class AddUmrahScreen(tk.Frame):
             self.cost_entry.get(),  # Cost
             self.paid_entry.get(),  # Paid
             self.remaining_amount.get(),  # Remaining
-            self.entry_date_entry.get(),  # Entry Date
-            self.exit_date_entry.get(),  # Exit Date
+            self.entry_date_entry.get_date().strftime("%Y-%m-%d"),  # Entry Date
+            self.exit_date_entry.get_date().strftime("%Y-%m-%d"),  # Exit Date
             self.days_left.get(),  # Days Left
             self.status_combobox.get(),  # Status
         )

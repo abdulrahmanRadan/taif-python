@@ -88,7 +88,8 @@ class TicketService:
 
 
     def export_to_pdf(self):
-        print("Export to PDF - Functionality not implemented yet.")
+        export_screen = TicketExporter(self.master)
+        # print("Export to PDF - Functionality not implemented yet.")
 
     def export_to_excel(self):
         """

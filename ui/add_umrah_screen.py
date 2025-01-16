@@ -138,6 +138,15 @@ class AddUmrahScreen(tk.Frame):
         try:
             cost = float(self.cost_entry.get())
             paid = float(self.paid_entry.get())
+
+            # التحقق من أن القيم ليست فارغة أو غير صالحة
+            if not cost or not paid:
+                self.remaining_amount.set("0.00")
+                return
+            
+            cost = float(cost)
+            paid = float(paid)
+
             remaining = self.service.calculate_remaining_amount(cost, paid)
             self.remaining_amount.set(f"{remaining:.2f}")
         except ValueError:
@@ -148,7 +157,16 @@ class AddUmrahScreen(tk.Frame):
         # خريطة لتحويل نص العملة إلى رمز
         currency_map = {"ر.ي": "1", "ر.س": "2", "دولار": "3"}
         currency = currency_map.get(self.currency_combobox.get(), "1")  # افتراضيًا "ر.ي" إذا لم يتم العثور على النص
-
+        
+        # التحقق من أن القيم المدخلة ليست فارغة أو غير صالحة
+        try:
+            cost = float(self.cost_entry.get())
+            paid = float(self.paid_entry.get())
+            remaining = float(self.remaining_amount.get())
+        except ValueError:
+            messagebox.showerror("خطأ", "يجب إدخال قيم صحيحة في الحقول المالية.")
+            return
+        
         # Collect data from the form
         data = (
             len(self.master.table.get_children()) + 1,  # Auto-increment ID
@@ -157,9 +175,9 @@ class AddUmrahScreen(tk.Frame):
             self.phone_number_entry.get(),  # Phone Number
             self.sponsor_name_entry.get(),  # Sponsor Name
             self.sponsor_number_entry.get(),  # Sponsor Number
-            float(self.cost_entry.get()),  # Cost
-            float(self.paid_entry.get()),  # Paid
-            float(self.remaining_amount.get()),  # Remaining
+            cost,  # Cost
+            paid,  # Paid
+            remaining,  # Remaining
             self.entry_date_entry.get_date().strftime("%Y-%m-%d"),  # Entry Date
             self.exit_date_entry.get_date().strftime("%Y-%m-%d"),  # Exit Date
             self.status_combobox.get(),  # Status

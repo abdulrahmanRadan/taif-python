@@ -196,6 +196,7 @@ class UmrahExporter:
         # تعريف الألوان
         gray_100 = PatternFill(start_color="F5F5F5", end_color="F5F5F5", fill_type="solid")  # رمادي فاتح
         white = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")  # أبيض
+        orange_light = PatternFill(start_color="FFCC99", end_color="FFCC99", fill_type="solid")  # برتقالي فاتح
 
         # تطبيق الألوان على الصفوف
         for row_idx, row in enumerate(sheet.iter_rows(min_row=2), start=2):  # تجاهل الصف الأول (العناوين)
@@ -205,6 +206,24 @@ class UmrahExporter:
             else:  # الصفوف الفردية
                 for cell in row:
                     cell.fill = white
+
+        # تطبيق ألوان خاصة على أعمدة معينة (مثال: عمود "التكلفة" و"المبلغ المدفوع" و"المبلغ المتبقي")
+        for col_idx, col in enumerate(sheet.iter_cols(min_row=1, max_row=1), start=1):  # العناوين
+            for cell in col:
+                if cell.value == "التكلفة":
+                    for row in sheet.iter_rows(min_row=2, min_col=col_idx, max_col=col_idx):
+                        for cell in row:
+                            cell.fill = PatternFill(start_color="FFCC99", end_color="FFCC99", fill_type="solid")  # برتقالي فاتح
+                elif cell.value == "المبلغ المدفوع":
+                    for row in sheet.iter_rows(min_row=2, min_col=col_idx, max_col=col_idx):
+                        for cell in row:
+                            cell.fill = PatternFill(start_color="99CCFF", end_color="99CCFF", fill_type="solid")  # أزرق فاتح
+                elif cell.value == "المبلغ المتبقي":
+                    for row in sheet.iter_rows(min_row=2, min_col=col_idx, max_col=col_idx):
+                        for cell in row:
+                            # إذا كانت القيمة أكبر من صفر، يتم تطبيق اللون البرتقالي الفاتح
+                            if cell.value is not None and float(cell.value.split()[0]) > 0:
+                                cell.fill = orange_light
 
         # حفظ التغييرات
         workbook.save(file_path)

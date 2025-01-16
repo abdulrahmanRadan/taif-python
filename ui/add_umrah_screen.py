@@ -68,6 +68,9 @@ class AddUmrahScreen(tk.Frame):
         # Row 6
         self.status_combobox = self.create_field(outer_frame, "الحالة", row=6, column=0, combobox_values=["مهم", "غير مهم"])
 
+        # Row 7: إضافة Combobox لاختيار العملة
+        self.currency_combobox = self.create_field(outer_frame, "العملة", row=6, column=2, combobox_values=["ر.ي", "ر.س", "دولار"])
+
         # Save Button
         save_button = ttk.Button(outer_frame, text="حفظ", style="Blue.TButton", width=50, command=self.save)
         save_button.grid(row=7, column=0, columnspan=4, pady=20)
@@ -137,12 +140,15 @@ class AddUmrahScreen(tk.Frame):
             paid = float(self.paid_entry.get())
             remaining = self.service.calculate_remaining_amount(cost, paid)
             self.remaining_amount.set(f"{remaining:.2f}")
-            # print(type(self.remaining_amount))
         except ValueError:
             self.remaining_amount.set("0.00")
 
     def save(self):
         """Handle saving the new umrah data."""
+        # خريطة لتحويل نص العملة إلى رمز
+        currency_map = {"ر.ي": "1", "ر.س": "2", "دولار": "3"}
+        currency = currency_map.get(self.currency_combobox.get(), "1")  # افتراضيًا "ر.ي" إذا لم يتم العثور على النص
+
         # Collect data from the form
         data = (
             len(self.master.table.get_children()) + 1,  # Auto-increment ID
@@ -157,6 +163,7 @@ class AddUmrahScreen(tk.Frame):
             self.entry_date_entry.get_date().strftime("%Y-%m-%d"),  # Entry Date
             self.exit_date_entry.get_date().strftime("%Y-%m-%d"),  # Exit Date
             self.status_combobox.get(),  # Status
+            currency,  # Currency
         )
 
         # Save data using the service

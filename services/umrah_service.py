@@ -2,19 +2,21 @@ from datetime import datetime
 from database.database_manager import DatabaseManager
 from database.SearchManager import SearchManager
 from services.validator import Validator 
+from reports.umrah_exporter import UmrahExporter
 
 class UmrahService:
-    def __init__(self):
+    def __init__(self, master):
         self.db_manager = DatabaseManager()
         self.search_manager = SearchManager()
         self.validator = Validator()  # تهيئة Validator
+        self.master = master
 
     def add_umrah_data(self, data):
         """إضافة بيانات معتمر جديدة."""
         columns = [
             "name", "passport_number", "phone_number", "sponsor_name",
             "sponsor_number", "cost", "paid", "remaining_amount",
-            "entry_date", "exit_date", "status"
+            "entry_date", "exit_date", "status", "currency"
         ]
         data_dict = dict(zip(columns, data[1:]))  # تحويل البيانات إلى قاموس
         rules = {
@@ -28,7 +30,7 @@ class UmrahService:
             "remaining_amount": ["required", "numeric"],
             "entry_date": ["required"],
             "exit_date": ["required"],
-            "status": ["required"]
+            "status": ["required"],
         }
         
         # التحقق من صحة البيانات
@@ -50,24 +52,45 @@ class UmrahService:
             return 0.00
 
     def calculate_days_left(self, entry_date, exit_date):
-        """حساب الأيام المتبقية بناءً على تاريخ الدخول وتاريخ الخروج."""
+        """حساب الأيام المتبقية بناءً على تاريخ الدخول وتاريخ الخروج فقط."""
         try:
+            # تحويل التواريخ إلى نص (في حال لم تكن نصوصًا)
             entry_date = str(entry_date)
             exit_date = str(exit_date)
             
+            # تحويل التواريخ إلى كائنات من نوع date
             entry_date = datetime.strptime(entry_date, "%Y-%m-%d").date()
             exit_date = datetime.strptime(exit_date, "%Y-%m-%d").date()
-            today = datetime.now().date()
+            # print("entry_date" , entry_date)
+            # print("exit_date" , exit_date)
 
-            if entry_date <= today:  # إذا كان تاريخ الدخول قد مر
-                days_left = (exit_date - today).days
-            else:  # إذا كان تاريخ الدخول في المستقبل
-                days_left = (exit_date - entry_date).days
+            # حساب الفرق بين تاريخ الخروج وتاريخ الدخول
+            days_left = (exit_date - entry_date).days
+            # print(days_left)
 
-            return max(days_left, 0)  # تجنب القيم السالبة
+            # تجنب القيم السالبة (إذا كان تاريخ الخروج قبل تاريخ الدخول)
+            return max(days_left, 0)
         except ValueError as e:
             print(f"Error calculating days left: {e}")
             return 0
+
+    def format_currency(self, currency_code):
+        """
+        تحويل رمز العملة المخزن في قاعدة البيانات إلى نص.
+        """
+        currency_map = {"1": "ر.ي", "2": "ر.س", "3": "دولار"}
+        return currency_map.get(currency_code, "ر.ي")  # افتراضيًا ر.ي إذا لم يتم العثور على الرمز
+
+    def merge_currency_with_amounts(self, row):
+        """
+        دمج نص العملة مع قيم الأعمدة "cost"، "paid"، و"remaining_amount".
+        """
+        currency_text = self.format_currency(row[12])  # تحويل رمز العملة إلى نص
+        row = list(row)
+        row[6] = f"{row[6]} {currency_text}"  # cost
+        row[7] = f"{row[7]} {currency_text}"  # paid
+        row[8] = f"{row[8]} {currency_text}"  # remaining_amount
+        return tuple(row)
 
     def get_all_data(self):
         """الحصول على جميع بيانات المعتمرين مع حساب عدد الأيام المتبقية."""
@@ -76,12 +99,20 @@ class UmrahService:
         for record in data:
             # تحويل البيانات إلى قائمة لتعديلها
             record_list = list(record)
+            
+            # دمج العملة مع الأعمدة المالية (cost, paid, remaining_amount)
+            formatted_row = self.merge_currency_with_amounts(record_list)
+            
+            # حذف العمود الأخير (currency) بعد دمجه مع الأعمدة الأخرى
+            formatted_row = list(formatted_row[:-1])  # تحويل tuple إلى list وإزالة آخر عنصر (currency)
+            
             # حساب عدد الأيام المتبقية
-            days_left = self.calculate_days_left(record_list[9], record_list[10])  # تاريخ الدخول (8) وتاريخ الخروج (9)
+            days_left = self.calculate_days_left(formatted_row[9], formatted_row[10])  # تاريخ الدخول (9) وتاريخ الخروج (10)
+            
             # إضافة عدد الأيام المتبقية إلى السجل
-            # print(days_left)
-            record_list.append(days_left)
-            updated_data.append(tuple(record_list))
+            formatted_row.append(days_left)
+            
+            updated_data.append(formatted_row)
         return updated_data
 
     def search_data(self, search_term: str):
@@ -90,14 +121,26 @@ class UmrahService:
         """
         if not search_term:
             return self.get_all_data()
-        # the table "name", "passport_number", "phone_number", "sponsor_number", "sponsor_name"
-        results = self.search_manager.search("Umrah", ["name", "passport_number", "phone_number","sponsor_number", "sponsor_name"], search_term)
+        
+        # البحث في الأعمدة التالية: "name", "passport_number", "phone_number", "sponsor_number", "sponsor_name"
+        results = self.search_manager.search("Umrah", ["name", "passport_number", "phone_number", "sponsor_number", "sponsor_name"], search_term)
         formatted_data = []
         for row in results:
             row_data = list(row.values())
-            days_left = self.calculate_days_left(row_data[9], row_data[10])
-            row_data.append(days_left)
-            formatted_data.append(tuple(row_data))
+            
+            # دمج العملة مع الأعمدة المالية (cost, paid, remaining_amount)
+            formatted_row = self.merge_currency_with_amounts(row_data)
+            
+            # حذف العمود الأخير (currency) بعد دمجه مع الأعمدة الأخرى
+            formatted_row = list(formatted_row[:-1])  # تحويل tuple إلى list وإزالة آخر عنصر (currency)
+            
+            # حساب عدد الأيام المتبقية
+            days_left = self.calculate_days_left(formatted_row[9], formatted_row[10])
+            
+            # إضافة عدد الأيام المتبقية إلى السجل
+            formatted_row.append(days_left)
+            
+            formatted_data.append(formatted_row)
         return formatted_data
 
     def export_to_pdf(self):
@@ -106,7 +149,7 @@ class UmrahService:
 
     def export_to_excel(self):
         """تصدير البيانات إلى Excel."""
-        print("Export to Excel - Functionality not implemented yet.")
+        export_screen = UmrahExporter(self.master)
 
     def save_umrah_data(self, data, master):
         """حفظ بيانات المعتمر وإضافتها إلى الجدول."""

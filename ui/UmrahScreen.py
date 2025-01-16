@@ -7,7 +7,7 @@ class UmrahScreen(tk.Frame):
     def __init__(self, master):
         super().__init__(master, bg="white")
         self.master = master
-        self.service = UmrahService()  # إنشاء كائن من UmrahService
+        self.service = UmrahService(self)  # إنشاء كائن من UmrahService
 
         # Search and Add New Section
         self.top_frame = tk.Frame(self, bg="white")

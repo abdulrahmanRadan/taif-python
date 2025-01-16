@@ -6,6 +6,7 @@ import os
 from database.database_manager import DatabaseManager
 from openpyxl import load_workbook
 from openpyxl.styles import Alignment
+from openpyxl.styles import PatternFill
 
 class TicketExporter:
     def __init__(self, master):
@@ -178,6 +179,64 @@ class TicketExporter:
         # حفظ التغييرات
         workbook.save(file_path)
 
+
+    def apply_colors_to_excel(self, file_path):
+        """
+        تطبيق الألوان على الصفوف والأعمدة في ملف Excel.
+        """
+
+        # تحميل ملف Excel
+        workbook = load_workbook(file_path)
+        sheet = workbook.active
+
+        # تعريف الألوان
+        gray_100 = PatternFill(start_color="F5F5F5", end_color="F5F5F5", fill_type="solid")  # رمادي فاتح
+        white = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")  # أبيض
+
+        # ألوان الشركات (يمكن تعديلها حسب الحاجة)
+        company_colors = {
+            "اركان المشاعر": PatternFill(start_color="FFCC99", end_color="FFCC99", fill_type="solid"),  # برتقالي فاتح
+            "النور": PatternFill(start_color="99CCFF", end_color="99CCFF", fill_type="solid"),  # أزرق فاتح
+            "صقر الحجاز": PatternFill(start_color="99FF99", end_color="99FF99", fill_type="solid"),  # أخضر فاتح
+            "الأفضل": PatternFill(start_color="9999FF", end_color="9999FF", fill_type="solid"),  # أخضر فاتح
+            "مشوار": PatternFill(start_color="FF9999", end_color="FF9999", fill_type="solid"),  # أخضر فاتح
+        }
+
+        # ألوان المكاتب (يمكن تعديلها حسب الحاجة)
+        office_colors = {
+            "مكتبنا": PatternFill(start_color="FF9999", end_color="FF9999", fill_type="solid"),  # أحمر فاتح
+            "الوادي": PatternFill(start_color="9999FF", end_color="9999FF", fill_type="solid"),  # أزرق غامق
+            "طايف": PatternFill(start_color="99FF99", end_color="99FF99", fill_type="solid"),  # أخضر فاتح
+        }
+
+        # تطبيق الألوان على الصفوف
+        for row_idx, row in enumerate(sheet.iter_rows(min_row=2), start=2):  # تجاهل الصف الأول (العناوين)
+            if row_idx % 2 == 0:  # الصفوف الزوجية
+                for cell in row:
+                    cell.fill = gray_100
+            else:  # الصفوف الفردية
+                for cell in row:
+                    cell.fill = white
+
+        # تطبيق الألوان على عمود الشركة
+        company_column_idx = 6  # افتراضيًا العمود السادس (يمكن تعديله)
+        for row in sheet.iter_rows(min_row=2, min_col=company_column_idx, max_col=company_column_idx):
+            for cell in row:
+                company_name = cell.value
+                if company_name in company_colors:
+                    cell.fill = company_colors[company_name]
+
+        # تطبيق الألوان على عمود المكتب
+        office_column_idx = 11  # افتراضيًا العمود الحادي عشر (يمكن تعديله)
+        for row in sheet.iter_rows(min_row=2, min_col=office_column_idx, max_col=office_column_idx):
+            for cell in row:
+                office_name = cell.value
+                if office_name in office_colors:
+                    cell.fill = office_colors[office_name]
+
+        # حفظ التغييرات
+        workbook.save(file_path)
+
     def export_to_excel(self):
         """
         تصدير البيانات إلى ملف Excel.
@@ -219,6 +278,9 @@ class TicketExporter:
 
         # تطبيق توجيه النص RTL على ملف Excel
         self.apply_rtl_to_excel(file_path)
+
+        # تطبيق الألوان على ملف Excel
+        self.apply_colors_to_excel(file_path)
 
         messagebox.showinfo("نجاح", f"تم تصدير البيانات بنجاح إلى: {file_path}")
 

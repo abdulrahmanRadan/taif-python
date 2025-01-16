@@ -4,6 +4,8 @@ from tkcalendar import DateEntry
 import pandas as pd
 import os
 from database.database_manager import DatabaseManager
+from openpyxl import load_workbook
+from openpyxl.styles import Alignment
 
 class TicketExporter:
     def __init__(self, master):
@@ -136,6 +138,46 @@ class TicketExporter:
 
         return data
 
+    def format_currency(self, currency_code):
+        """
+        تحويل رمز العملة المخزن في قاعدة البيانات إلى نص.
+        """
+        currency_map = {"1": "ر.ي", "2": "ر.س", "3": "دولار"}
+        return currency_map.get(currency_code, "ر.ي")  # افتراضيًا ر.ي إذا لم يتم العثور على الرمز
+
+    def merge_and_remove_currency(self, df):
+        """
+        دمج العملة مع الأعمدة المالية وحذف عمود العملة.
+        """
+        # تحويل رمز العملة إلى نص باستخدام دالة format_currency
+        df["العملة"] = df["العملة"].apply(self.format_currency)
+
+        # دمج العملة مع الأعمدة المالية
+        df["المبلغ"] = df["المبلغ"].astype(str) + " " + df["العملة"]
+        df["الوكيل"] = df["الوكيل"].astype(str) + " " + df["العملة"]
+        df["الصافي"] = df["الصافي"].astype(str) + " " + df["العملة"]
+
+        # حذف عمود العملة
+        df.drop(columns=["العملة"], inplace=True)
+
+        return df
+
+    def apply_rtl_to_excel(self, file_path):
+        """
+        تطبيق توجيه النص من اليمين إلى اليسار على ملف Excel.
+        """
+        # تحميل ملف Excel
+        workbook = load_workbook(file_path)
+        sheet = workbook.active
+
+        # تطبيق توجيه النص RTL على جميع الخلايا
+        for row in sheet.iter_rows():
+            for cell in row:
+                cell.alignment = Alignment(horizontal="right", vertical="center")
+
+        # حفظ التغييرات
+        workbook.save(file_path)
+
     def export_to_excel(self):
         """
         تصدير البيانات إلى ملف Excel.
@@ -165,10 +207,8 @@ class TicketExporter:
         }
         df.rename(columns=arabic_columns, inplace=True)
 
-        # دمج العملة مع الأعمدة المالية
-        df["المبلغ"] = df["المبلغ"].astype(str) + " " + df["العملة"]
-        df["الوكيل"] = df["الوكيل"].astype(str) + " " + df["العملة"]
-        df["الصافي"] = df["الصافي"].astype(str) + " " + df["العملة"]
+        # دمج العملة مع الأعمدة المالية وحذف عمود العملة
+        df = self.merge_and_remove_currency(df)
 
         # تحديد مسار حفظ الملف
         downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
@@ -176,6 +216,10 @@ class TicketExporter:
 
         # تصدير البيانات إلى Excel
         df.to_excel(file_path, index=False)
+
+        # تطبيق توجيه النص RTL على ملف Excel
+        self.apply_rtl_to_excel(file_path)
+
         messagebox.showinfo("نجاح", f"تم تصدير البيانات بنجاح إلى: {file_path}")
 
         # إغلاق النافذة بعد التصدير

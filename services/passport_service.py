@@ -3,10 +3,11 @@ from database.SearchManager import SearchManager
 from services.validator import Validator
 
 class PassportService:
-    def __init__(self):
+    def __init__(self, master):
         self.db_manager = DatabaseManager()
         self.search_manager = SearchManager()
         self.validator = Validator()
+        self.master = master
 
     def add_passport_data(self, data):
         columns = [
@@ -19,14 +20,12 @@ class PassportService:
             "name": ["required", "min:3", "max:50"],
             "booking_date": ["required"],
             "type": ["required"],
-            "booking_price": ["required", "numeric:2"],
-            "purchase_price": ["required", "numeric:2"],
-            "net_amount": ["required", "numeric:2"],
-            "paid_amount": ["required", "numeric:2"],
-            "remaining_amount": ["required", "numeric:2"],
+            "booking_price": [ "numeric:2"],
+            "purchase_price": [ "numeric:2"],
+            "net_amount": [ "numeric:2"],
+            "paid_amount": ["numeric:2"],
+            "remaining_amount": ["numeric:2"],
             "status": ["required"],
-            "receipt_date": ["required"],
-            "receiver_name": ["required"],
             "currency": ["required"]
         }
 

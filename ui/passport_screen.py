@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from ui.add_passport_screen import AddPassportScreen
+from ui.adds.add_passport_screen import AddPassportScreen
 from services.passport_service import PassportService
 
 class PassportScreen(tk.Frame):

@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from ui.add_ticket_screen import AddTicketScreen
+from ui.adds.add_ticket_screen import AddTicketScreen
 from services.ticket_service import TicketService
 
 class TicketScreen(tk.Frame):

@@ -74,7 +74,7 @@ class PassportsExporter:
         self.date_entry.grid_remove()
 
         # حقل "المبلغ المتبقي" (مخفي بشكل افتراضي)
-        self.remaining_amount_label = ttk.Label(form_frame, text="المبلغ المتبقي أقل من:")
+        self.remaining_amount_label = ttk.Label(form_frame, text="المبلغ المتبقي اكبر من:")
         self.remaining_amount_entry = ttk.Entry(form_frame, textvariable=self.remaining_amount_threshold, width=30)
         self.remaining_amount_label.grid(row=3, column=0, padx=5, pady=5, sticky="e")
         self.remaining_amount_entry.grid(row=3, column=1, padx=5, pady=5, sticky="w")
@@ -196,10 +196,10 @@ class PassportsExporter:
             if not self.selected_date.get():
                 messagebox.showwarning("تحذير", "يجب تحديد التاريخ.")
                 return None
-            conditions.append(f"(booking_date = '{self.selected_date.get()}' OR receipt_date = '{self.selected_date.get()}')")
+            conditions.append(f"(booking_date >= '{self.selected_date.get()}' OR receipt_date >= '{self.selected_date.get()}')")
 
         elif self.export_option.get() == "بيانات بها مبالغ متبقية":
-            conditions.append(f"remaining_amount <= {self.remaining_amount_threshold.get()}")
+            conditions.append(f"remaining_amount >= {self.remaining_amount_threshold.get()}")
 
         elif self.export_option.get() == "حسب نوع الجواز":
             if not self.passport_type.get():
@@ -226,7 +226,6 @@ class PassportsExporter:
             return None
 
         return data
-
     def get_type_code(self, type_name):
         """
         تحويل اسم نوع الجواز إلى رمزه.

@@ -23,8 +23,7 @@ class PassportsExporter:
         # المتغيرات
         self.filename = tk.StringVar(value="تصدير_الجوازات")
         self.export_option = tk.StringVar(value="جميع البيانات")
-        self.booking_date = tk.StringVar()
-        self.receipt_date = tk.StringVar()
+        self.selected_date = tk.StringVar()  # متغير لتخزين التاريخ المحدد
         self.remaining_amount_threshold = tk.DoubleVar(value=0.0)  # متغير جديد لتخزين قيمة "المبلغ المتبقي"
         self.passport_type = tk.StringVar()  # متغير لنوع الجواز
         self.passport_status = tk.StringVar()  # متغير لحالة الجواز
@@ -60,58 +59,51 @@ class PassportsExporter:
         export_options = ttk.Combobox(
             form_frame,
             textvariable=self.export_option,
-            values=["جميع البيانات", "حسب تاريخ الحجز", "حسب تاريخ الاستلام", "بيانات بها مبالغ متبقية", "حسب نوع الجواز", "حسب حالة الجواز"],
+            values=["جميع البيانات", "حسب التاريخ", "بيانات بها مبالغ متبقية", "حسب نوع الجواز", "حسب حالة الجواز"],
             state="readonly"
         )
         export_options.grid(row=1, column=1, padx=5, pady=5, sticky="w")
         export_options.bind("<<ComboboxSelected>>", self.toggle_fields)
 
-        # حقول التاريخ (مخفية بشكل افتراضي)
-        self.booking_date_label = ttk.Label(form_frame, text="تاريخ الحجز:")
-        self.booking_date_entry = DateEntry(form_frame, textvariable=self.booking_date, date_pattern="yyyy-mm-dd")
-        self.receipt_date_label = ttk.Label(form_frame, text="تاريخ الاستلام:")
-        self.receipt_date_entry = DateEntry(form_frame, textvariable=self.receipt_date, date_pattern="yyyy-mm-dd")
+        # حقل التاريخ (مخفي بشكل افتراضي)
+        self.date_label = ttk.Label(form_frame, text="التاريخ:")
+        self.date_entry = DateEntry(form_frame, textvariable=self.selected_date, date_pattern="yyyy-mm-dd")
+        self.date_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
+        self.date_entry.grid(row=2, column=1, padx=5, pady=5, sticky="w")
+        self.date_label.grid_remove()
+        self.date_entry.grid_remove()
 
         # حقل "المبلغ المتبقي" (مخفي بشكل افتراضي)
         self.remaining_amount_label = ttk.Label(form_frame, text="المبلغ المتبقي أقل من:")
         self.remaining_amount_entry = ttk.Entry(form_frame, textvariable=self.remaining_amount_threshold, width=30)
+        self.remaining_amount_label.grid(row=3, column=0, padx=5, pady=5, sticky="e")
+        self.remaining_amount_entry.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+        self.remaining_amount_label.grid_remove()
+        self.remaining_amount_entry.grid_remove()
 
         # قائمة منسدلة لأنواع الجوازات (مخفية بشكل افتراضي)
         self.passport_type_label = ttk.Label(form_frame, text="نوع الجواز:")
         self.passport_type_combobox = ttk.Combobox(form_frame, textvariable=self.passport_type, state="readonly")
-        self.passport_type_combobox.grid(row=5, column=1, padx=5, pady=5, sticky="w")
+        self.passport_type_combobox.grid(row=4, column=1, padx=5, pady=5, sticky="w")
         self.passport_type_combobox.grid_remove()  # إخفاء القائمة المنسدلة افتراضيًا
 
         # قائمة منسدلة لحالات الجوازات (مخفية بشكل افتراضي)
         self.passport_status_label = ttk.Label(form_frame, text="حالة الجواز:")
         self.passport_status_combobox = ttk.Combobox(form_frame, textvariable=self.passport_status, state="readonly")
-        self.passport_status_combobox.grid(row=6, column=1, padx=5, pady=5, sticky="w")
+        self.passport_status_combobox.grid(row=5, column=1, padx=5, pady=5, sticky="w")
         self.passport_status_combobox.grid_remove()  # إخفاء القائمة المنسدلة افتراضيًا
 
         # زر التصدير إلى Excel
         export_excel_button = ttk.Button(form_frame, text="تصدير إلى Excel", command=self.export_to_excel)
-        export_excel_button.grid(row=7, column=0, columnspan=2, pady=10, padx=5, sticky="ew")
+        export_excel_button.grid(row=6, column=0, columnspan=2, pady=10, padx=5, sticky="ew")
 
     def toggle_fields(self, event=None):
         """
         إظهار أو إخفاء حقول التاريخ وحقل "المبلغ المتبقي" بناءً على الخيار المحدد.
         """
-        if self.export_option.get() == "حسب تاريخ الحجز":
-            self.booking_date_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
-            self.booking_date_entry.grid(row=2, column=1, padx=5, pady=5, sticky="w")
-            self.receipt_date_label.grid_remove()
-            self.receipt_date_entry.grid_remove()
-            self.remaining_amount_label.grid_remove()
-            self.remaining_amount_entry.grid_remove()
-            self.passport_type_label.grid_remove()
-            self.passport_type_combobox.grid_remove()
-            self.passport_status_label.grid_remove()
-            self.passport_status_combobox.grid_remove()
-        elif self.export_option.get() == "حسب تاريخ الاستلام":
-            self.receipt_date_label.grid(row=3, column=0, padx=5, pady=5, sticky="e")
-            self.receipt_date_entry.grid(row=3, column=1, padx=5, pady=5, sticky="w")
-            self.booking_date_label.grid_remove()
-            self.booking_date_entry.grid_remove()
+        if self.export_option.get() == "حسب التاريخ":
+            self.date_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
+            self.date_entry.grid(row=2, column=1, padx=5, pady=5, sticky="w")
             self.remaining_amount_label.grid_remove()
             self.remaining_amount_entry.grid_remove()
             self.passport_type_label.grid_remove()
@@ -119,45 +111,37 @@ class PassportsExporter:
             self.passport_status_label.grid_remove()
             self.passport_status_combobox.grid_remove()
         elif self.export_option.get() == "بيانات بها مبالغ متبقية":
-            self.remaining_amount_label.grid(row=4, column=0, padx=5, pady=5, sticky="e")
-            self.remaining_amount_entry.grid(row=4, column=1, padx=5, pady=5, sticky="w")
-            self.booking_date_label.grid_remove()
-            self.booking_date_entry.grid_remove()
-            self.receipt_date_label.grid_remove()
-            self.receipt_date_entry.grid_remove()
+            self.remaining_amount_label.grid(row=3, column=0, padx=5, pady=5, sticky="e")
+            self.remaining_amount_entry.grid(row=3, column=1, padx=5, pady=5, sticky="w")
+            self.date_label.grid_remove()
+            self.date_entry.grid_remove()
             self.passport_type_label.grid_remove()
             self.passport_type_combobox.grid_remove()
             self.passport_status_label.grid_remove()
             self.passport_status_combobox.grid_remove()
         elif self.export_option.get() == "حسب نوع الجواز":
-            self.passport_type_label.grid(row=5, column=0, padx=5, pady=5, sticky="e")
-            self.passport_type_combobox.grid(row=5, column=1, padx=5, pady=5, sticky="w")
+            self.passport_type_label.grid(row=4, column=0, padx=5, pady=5, sticky="e")
+            self.passport_type_combobox.grid(row=4, column=1, padx=5, pady=5, sticky="w")
             self.load_passport_types()  # تحميل أنواع الجوازات
-            self.booking_date_label.grid_remove()
-            self.booking_date_entry.grid_remove()
-            self.receipt_date_label.grid_remove()
-            self.receipt_date_entry.grid_remove()
+            self.date_label.grid_remove()
+            self.date_entry.grid_remove()
             self.remaining_amount_label.grid_remove()
             self.remaining_amount_entry.grid_remove()
             self.passport_status_label.grid_remove()
             self.passport_status_combobox.grid_remove()
         elif self.export_option.get() == "حسب حالة الجواز":
-            self.passport_status_label.grid(row=6, column=0, padx=5, pady=5, sticky="e")
-            self.passport_status_combobox.grid(row=6, column=1, padx=5, pady=5, sticky="w")
+            self.passport_status_label.grid(row=5, column=0, padx=5, pady=5, sticky="e")
+            self.passport_status_combobox.grid(row=5, column=1, padx=5, pady=5, sticky="w")
             self.load_passport_statuses()  # تحميل حالات الجوازات
-            self.booking_date_label.grid_remove()
-            self.booking_date_entry.grid_remove()
-            self.receipt_date_label.grid_remove()
-            self.receipt_date_entry.grid_remove()
+            self.date_label.grid_remove()
+            self.date_entry.grid_remove()
             self.remaining_amount_label.grid_remove()
             self.remaining_amount_entry.grid_remove()
             self.passport_type_label.grid_remove()
             self.passport_type_combobox.grid_remove()
         else:
-            self.booking_date_label.grid_remove()
-            self.booking_date_entry.grid_remove()
-            self.receipt_date_label.grid_remove()
-            self.receipt_date_entry.grid_remove()
+            self.date_label.grid_remove()
+            self.date_entry.grid_remove()
             self.remaining_amount_label.grid_remove()
             self.remaining_amount_entry.grid_remove()
             self.passport_type_label.grid_remove()
@@ -208,17 +192,11 @@ class PassportsExporter:
         query = f"SELECT * FROM {self.table_name}"
         conditions = []
 
-        if self.export_option.get() == "حسب تاريخ الحجز":
-            if not self.booking_date.get():
-                messagebox.showwarning("تحذير", "يجب تحديد تاريخ الحجز.")
+        if self.export_option.get() == "حسب التاريخ":
+            if not self.selected_date.get():
+                messagebox.showwarning("تحذير", "يجب تحديد التاريخ.")
                 return None
-            conditions.append(f"booking_date = '{self.booking_date.get()}'")
-
-        elif self.export_option.get() == "حسب تاريخ الاستلام":
-            if not self.receipt_date.get():
-                messagebox.showwarning("تحذير", "يجب تحديد تاريخ الاستلام.")
-                return None
-            conditions.append(f"receipt_date = '{self.receipt_date.get()}'")
+            conditions.append(f"(booking_date = '{self.selected_date.get()}' OR receipt_date = '{self.selected_date.get()}')")
 
         elif self.export_option.get() == "بيانات بها مبالغ متبقية":
             conditions.append(f"remaining_amount <= {self.remaining_amount_threshold.get()}")

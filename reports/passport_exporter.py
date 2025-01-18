@@ -346,6 +346,12 @@ class PassportsExporter:
         }
         df.rename(columns=arabic_columns, inplace=True)
 
+        # تحويل نوع الجواز من رمز إلى نص
+        df["النوع"] = df["النوع"].apply(self.format_type)
+
+        # تحويل حالة الجواز من رمز إلى نص
+        df["الحالة"] = df["الحالة"].apply(self.format_status)
+
         # دمج العملة مع الأعمدة المالية وحذف عمود العملة
         df = self.merge_and_remove_currency(df)
 

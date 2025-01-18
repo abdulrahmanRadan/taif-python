@@ -1,6 +1,7 @@
 from database.database_manager import DatabaseManager
 from database.SearchManager import SearchManager
 from services.validator import Validator
+from reports.passport_exporter import PassportsExporter
 
 class PassportService:
     def __init__(self, master):
@@ -103,7 +104,8 @@ class PassportService:
         return formatted_data
 
     def export_to_excel(self):
-        print("Export to Excel - Functionality not implemented yet.")
+        export_screen = PassportsExporter(self.master)
+        # print("Export to Excel - Functionality not implemented yet.")
 
     def save_passport_data(self, data, master):
         success, message = self.add_passport_data(data)

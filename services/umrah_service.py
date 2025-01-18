@@ -140,10 +140,6 @@ class UmrahService:
             formatted_data.append(formatted_row)
         return formatted_data
 
-    def export_to_pdf(self):
-        """تصدير البيانات إلى PDF."""
-        print("Export to PDF - Functionality not implemented yet.")
-
     def export_to_excel(self):
         """تصدير البيانات إلى Excel."""
         export_screen = UmrahExporter(self.master)

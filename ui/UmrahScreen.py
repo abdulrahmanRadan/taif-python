@@ -39,9 +39,6 @@ class UmrahScreen(tk.Frame):
         self.search_entry.bind("<KeyRelease>", self.on_search)
 
         # Export Buttons
-        self.export_pdf_button = tk.Button(self.top_frame, text="Export to PDF", bg="green", fg="white", font=("Arial", 12), command=self.service.export_to_pdf)
-        self.export_pdf_button.pack(side=tk.LEFT, padx=(0, 5))
-
         self.export_excel_button = tk.Button(self.top_frame, text="Export to Excel", bg="green", fg="white", font=("Arial", 12), command=self.service.export_to_excel)
         self.export_excel_button.pack(side=tk.LEFT)
 
@@ -142,7 +139,6 @@ class UmrahScreen(tk.Frame):
 
     def hide_buttons_and_search(self):
         """Hide the buttons and search bar when showing the add screen."""
-        self.export_pdf_button.pack_forget()
         self.export_excel_button.pack_forget()
         self.add_button.pack_forget()
         self.search_label.pack_forget()
@@ -152,6 +148,5 @@ class UmrahScreen(tk.Frame):
         """Show the buttons and search bar when returning to the main screen."""
         self.search_label.pack(side=tk.LEFT, padx=(0, 5))
         self.search_entry.pack(side=tk.LEFT, padx=(0, 10))
-        self.export_pdf_button.pack(side=tk.LEFT, padx=(0, 5))
         self.export_excel_button.pack(side=tk.LEFT)
         self.add_button.pack(side=tk.LEFT, padx=(20, 10))

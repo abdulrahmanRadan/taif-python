@@ -86,11 +86,6 @@ class TicketService:
             formatted_row = self.merge_currency_with_amounts(row)
             yield formatted_row[:7] + formatted_row[8:]
 
-
-    def export_to_pdf(self):
-        export_screen = TicketExporter(self.master)
-        # print("Export to PDF - Functionality not implemented yet.")
-
     def export_to_excel(self):
         """
         فتح نافذة تصدير البيانات إلى Excel.

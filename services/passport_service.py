@@ -102,9 +102,6 @@ class PassportService:
             formatted_data.append(formatted_row[:12])  # إزالة العمود رقم 12 (العملة)
         return formatted_data
 
-    def export_to_pdf(self):
-        print("Export to PDF - Functionality not implemented yet.")
-
     def export_to_excel(self):
         print("Export to Excel - Functionality not implemented yet.")
 

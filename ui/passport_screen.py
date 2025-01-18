@@ -30,9 +30,6 @@ class PassportScreen(tk.Frame):
         self.search_entry.pack(side=tk.LEFT, padx=(0, 10))
         self.search_entry.bind("<KeyRelease>", self.on_search)  # ربط حقل البحث بدالة البحث
 
-        self.export_pdf_button = tk.Button(self.top_frame, text="تصدير إلى PDF", bg="green", fg="white", font=("Arial", 12), command=self.service.export_to_pdf)
-        self.export_pdf_button.pack(side=tk.LEFT, padx=(0, 5))
-
         self.export_excel_button = tk.Button(self.top_frame, text="تصدير إلى Excel", bg="green", fg="white", font=("Arial", 12), command=self.service.export_to_excel)
         self.export_excel_button.pack(side=tk.LEFT)
 
@@ -102,7 +99,6 @@ class PassportScreen(tk.Frame):
         self.show_buttons_and_search()
 
     def hide_buttons_and_search(self):
-        self.export_pdf_button.pack_forget()
         self.export_excel_button.pack_forget()
         self.add_button.pack_forget()
         self.search_label.pack_forget()
@@ -111,6 +107,5 @@ class PassportScreen(tk.Frame):
     def show_buttons_and_search(self):
         self.search_label.pack(side=tk.LEFT, padx=(0, 5))
         self.search_entry.pack(side=tk.LEFT, padx=(0, 10))
-        self.export_pdf_button.pack(side=tk.LEFT, padx=(0, 5))
         self.export_excel_button.pack(side=tk.LEFT)
         self.add_button.pack(side=tk.LEFT, padx=(20, 10))

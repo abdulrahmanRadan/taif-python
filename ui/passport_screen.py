@@ -189,13 +189,28 @@ class PassportScreen(tk.Frame):
         self.show_buttons_and_search()
 
     def hide_buttons_and_search(self):
+        """
+        إخفاء أزرار البحث والإضافة والتصدير والتعديل والحذف.
+        """
         self.export_excel_button.grid_remove()
         self.add_button.grid_remove()
         self.search_label.grid_remove()
         self.search_entry.grid_remove()
+        self.edit_button.grid_remove()  # إخفاء زر التعديل
+        self.delete_button.grid_remove()  # إخفاء زر الحذف
 
     def show_buttons_and_search(self):
+        """
+        إعادة عرض أزرار البحث والإضافة والتصدير.
+        """
         self.search_label.grid(row=0, column=0, padx=(0, 5), sticky="w")
         self.search_entry.grid(row=0, column=1, padx=(0, 10), sticky="ew")
         self.export_excel_button.grid(row=0, column=5, padx=(10, 20), sticky="e")
         self.add_button.grid(row=0, column=4, padx=(20, 10), sticky="e")
+
+        # إعادة عرض أزرار التعديل والحذف إذا تم تحديد صف
+        selected_item = self.table.selection()
+        if selected_item:
+            self.edit_button.grid(row=0, column=2, padx=10, sticky="e")  # عرض زر التعديل
+            self.delete_button.grid(row=0, column=3, padx=10, sticky="e")  # عرض زر الحذف
+

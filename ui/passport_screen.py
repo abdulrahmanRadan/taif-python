@@ -9,8 +9,18 @@ class PassportScreen(tk.Frame):
         self.master = master
         self.service = PassportService(self)  # إنشاء كائن الخدمة
 
+        # جعل الإطار الرئيسي يتكيف مع حجم النافذة
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
         self.top_frame = tk.Frame(self, bg="white")
         self.top_frame.grid(row=0, column=0, sticky="ew", pady=10, padx=10)
+
+        # جعل أعمدة top_frame تتكيف مع العرض
+        self.top_frame.grid_columnconfigure(0, weight=1)
+        self.top_frame.grid_columnconfigure(1, weight=1)
+        self.top_frame.grid_columnconfigure(2, weight=1)
+        self.top_frame.grid_columnconfigure(3, weight=1)
 
         self.create_buttons()
         self.create_table_section()
@@ -19,38 +29,47 @@ class PassportScreen(tk.Frame):
         self.add_passport_screen.grid(row=1, column=0, sticky="nsew")
         self.add_passport_screen.grid_remove()
 
-        self.grid_rowconfigure(1, weight=1)
-        self.grid_columnconfigure(0, weight=1)
-
     def create_buttons(self):
         # زر البحث
         self.search_label = tk.Label(self.top_frame, text="بحث:", font=("Arial", 12), bg="white")
-        self.search_label.pack(side=tk.LEFT, padx=(0, 5))
+        self.search_label.grid(row=0, column=0, padx=(0, 5), sticky="w")
 
-        self.search_entry = tk.Entry(self.top_frame, font=("Arial", 12), width=30)
-        self.search_entry.pack(side=tk.LEFT, padx=(0, 10))
+        # حقل البحث مع حواف خارجية سماوية
+        self.search_entry = tk.Entry(
+            self.top_frame,
+            font=("Arial", 12),
+            width=30,
+            highlightbackground="cyan",  # لون الحواف الخارجية
+            highlightthickness=2,       # سماكة الحواف
+            relief=tk.FLAT              # إزالة الحواف الداخلية
+        )
+        self.search_entry.grid(row=0, column=1, padx=(0, 10), sticky="ew")
         self.search_entry.bind("<KeyRelease>", self.on_search)  # ربط حقل البحث بدالة البحث
 
         # أزرار التعديل والحذف (مخفية بشكل افتراضي)
         self.edit_button = tk.Button(self.top_frame, text="تعديل", bg="blue", fg="white", font=("Arial", 12), width=20, command=self.edit_row)
-        self.edit_button.pack(side=tk.LEFT, padx=10)
-        self.edit_button.pack_forget()  # إخفاء الزر
+        self.edit_button.grid(row=0, column=2, padx=10, sticky="e")
+        self.edit_button.grid_remove()  # إخفاء الزر
 
         self.delete_button = tk.Button(self.top_frame, text="حذف", bg="red", fg="white", font=("Arial", 12), width=20, command=self.delete_row)
-        self.delete_button.pack(side=tk.LEFT, padx=10)
-        self.delete_button.pack_forget()  # إخفاء الزر
+        self.delete_button.grid(row=0, column=3, padx=10, sticky="e")
+        self.delete_button.grid_remove()  # إخفاء الزر
 
         # زر إضافة جديد
         self.add_button = tk.Button(self.top_frame, text="إضافة جواز جديد", bg="blue", fg="white", font=("Arial", 12), width=20, command=self.show_add_screen)
-        self.add_button.pack(side=tk.RIGHT, padx=(20, 10))
+        self.add_button.grid(row=0, column=4, padx=(20, 10), sticky="e")
 
         # زر تصدير إلى Excel
-        self.export_excel_button = tk.Button(self.top_frame, text="تصدير إلى Excel", bg="green", fg="white", font=("Arial", 12), command=self.service.export_to_excel)
-        self.export_excel_button.pack(side=tk.RIGHT)
+        self.export_excel_button = tk.Button(self.top_frame, text="تصدير إلى Excel", bg="green", fg="white", font=("Arial", 12), width=20, command=self.service.export_to_excel)
+        self.export_excel_button.grid(row=0, column=5, padx=(10, 20), sticky="e")
 
     def create_table_section(self):
         table_frame = tk.Frame(self, bg="white")
         table_frame.grid(row=1, column=0, sticky="nsew")
+
+        # جعل الجدول يتكيف مع حجم النافذة
+        table_frame.grid_rowconfigure(0, weight=1)
+        table_frame.grid_columnconfigure(0, weight=1)
 
         scroll_x = tk.Scrollbar(table_frame, orient=tk.HORIZONTAL)
         scroll_y = tk.Scrollbar(table_frame, orient=tk.VERTICAL)
@@ -72,6 +91,10 @@ class PassportScreen(tk.Frame):
             self.table.heading(col, text=col)
             self.table.column(col, width=120)
 
+        # تخصيص ألوان الصفوف الزوجية والفردية
+        self.table.tag_configure("oddrow", background="#f0f0f0")  # لون الصفوف الفردية
+        self.table.tag_configure("evenrow", background="#ffffff")  # لون الصفوف الزوجية
+
         self.table.pack(fill=tk.BOTH, expand=True)
         self.populate_table()
 
@@ -84,8 +107,11 @@ class PassportScreen(tk.Frame):
         """
         self.table.delete(*self.table.get_children())  # مسح الجدول الحالي
         data = data if data is not None else self.service.get_all_data()
-        for item in data:
-            self.table.insert("", tk.END, values=item)
+        for index, item in enumerate(data):
+            if index % 2 == 0:
+                self.table.insert("", tk.END, values=item, tags=("evenrow",))  # صف زوجي
+            else:
+                self.table.insert("", tk.END, values=item, tags=("oddrow",))  # صف فردي
 
     def show_buttons(self, event=None):
         """
@@ -93,11 +119,11 @@ class PassportScreen(tk.Frame):
         """
         selected_item = self.table.selection()
         if selected_item:
-            self.edit_button.pack(side=tk.LEFT, padx=10 )  # عرض زر التعديل
-            self.delete_button.pack(side=tk.LEFT, padx=10)  # عرض زر الحذف
+            self.edit_button.grid(row=0, column=2, padx=10, sticky="e")  # عرض زر التعديل
+            self.delete_button.grid(row=0, column=3, padx=10, sticky="e")  # عرض زر الحذف
         else:
-            self.edit_button.pack_forget()  # إخفاء زر التعديل
-            self.delete_button.pack_forget()  # إخفاء زر الحذف
+            self.edit_button.grid_remove()  # إخفاء زر التعديل
+            self.delete_button.grid_remove()  # إخفاء زر الحذف
 
     def edit_row(self):
         """
@@ -144,13 +170,13 @@ class PassportScreen(tk.Frame):
         self.show_buttons_and_search()
 
     def hide_buttons_and_search(self):
-        self.export_excel_button.pack_forget()
-        self.add_button.pack_forget()
-        self.search_label.pack_forget()
-        self.search_entry.pack_forget()
+        self.export_excel_button.grid_remove()
+        self.add_button.grid_remove()
+        self.search_label.grid_remove()
+        self.search_entry.grid_remove()
 
     def show_buttons_and_search(self):
-        self.search_label.pack(side=tk.LEFT, padx=(0, 5))
-        self.search_entry.pack(side=tk.LEFT, padx=(0, 10))
-        self.export_excel_button.pack(side=tk.RIGHT)
-        self.add_button.pack(side=tk.RIGHT, padx=(20, 10))
+        self.search_label.grid(row=0, column=0, padx=(0, 5), sticky="w")
+        self.search_entry.grid(row=0, column=1, padx=(0, 10), sticky="ew")
+        self.export_excel_button.grid(row=0, column=5, padx=(10, 20), sticky="e")
+        self.add_button.grid(row=0, column=4, padx=(20, 10), sticky="e")

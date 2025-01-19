@@ -103,6 +103,16 @@ class PassportService:
             formatted_data.append(formatted_row[:12])  # إزالة العمود رقم 12 (العملة)
         return formatted_data
 
+    def get_passport_by_id(self, passport_id):
+        """
+        جلب بيانات جواز السفر من قاعدة البيانات باستخدام id.
+        """
+        query = "SELECT * FROM Passports WHERE id = ?"
+        result = self.db_manager.execute_read_query(query, (passport_id,))
+        if result:
+            return result[0]  # إرجاع الصف الأول (يجب أن يكون هناك صف واحد فقط)
+        return None
+        
     def export_to_excel(self):
         export_screen = PassportsExporter(self.master)
         # print("Export to Excel - Functionality not implemented yet.")
@@ -112,3 +122,31 @@ class PassportService:
         if success:
             master.add_to_table(data)
         return success, message
+
+
+    def update_passport_data(self, data, master):
+        """
+        تحديث بيانات جواز السفر في قاعدة البيانات.
+        """
+        try:
+            # تحويل البيانات إلى قاموس
+            updated_data = {
+                "name": data[1],
+                "booking_date": data[2],
+                "type": data[3],
+                "booking_price": data[4],
+                "purchase_price": data[5],
+                "net_amount": data[6],
+                "paid_amount": data[7],
+                "remaining_amount": data[8],
+                "status": data[9],
+                "receipt_date": data[10],
+                "receiver_name": data[11],
+                "currency": data[12]
+            }
+
+            # تحديث البيانات في قاعدة البيانات
+            self.db_manager.update("Passports", data[0], **updated_data)
+            return True, "تم تحديث البيانات بنجاح!"
+        except Exception as e:
+            return False, f"حدث خطأ أثناء تحديث البيانات: {str(e)}"

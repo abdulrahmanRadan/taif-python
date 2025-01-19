@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from ui.adds.add_passport_screen import AddPassportScreen
+from ui.edits.edit_passport_screen import EditPassportScreen
 from services.passport_service import PassportService
 
 class PassportScreen(tk.Frame):
@@ -28,6 +29,8 @@ class PassportScreen(tk.Frame):
         self.add_passport_screen = AddPassportScreen(self, self.show_main_screen, self.service)
         self.add_passport_screen.grid(row=1, column=0, sticky="nsew")
         self.add_passport_screen.grid_remove()
+
+        self.edit_passport_screen = None  # واجهة التعديل
 
     def create_buttons(self):
         # زر البحث
@@ -127,12 +130,25 @@ class PassportScreen(tk.Frame):
 
     def edit_row(self):
         """
-        دالة التعديل.
+        عرض واجهة التعديل عند النقر على زر التعديل.
         """
         selected_item = self.table.selection()
         if selected_item:
+            # جلب id الصف المحدد
             item_id = self.table.item(selected_item, "values")[0]
-            print(f"تعديل الصف ذو المعرف: {item_id}")
+
+            # البحث في قاعدة البيانات باستخدام id
+            data = self.service.get_passport_by_id(item_id)
+
+            if data:
+                # فتح واجهة التعديل مع البيانات المستردة
+                self.edit_passport_screen = EditPassportScreen(self, self.show_main_screen, self.service, data)
+                self.edit_passport_screen.grid(row=1, column=0, sticky="nsew")
+                self.table.master.grid_remove()
+                self.hide_buttons_and_search()
+            else:
+                messagebox.showerror("خطأ", "لم يتم العثور على البيانات!")
+
 
     def delete_row(self):
         """
@@ -165,7 +181,10 @@ class PassportScreen(tk.Frame):
         self.hide_buttons_and_search()
 
     def show_main_screen(self):
-        self.add_passport_screen.grid_remove()
+        if self.add_passport_screen:
+            self.add_passport_screen.grid_remove()
+        if self.edit_passport_screen:
+            self.edit_passport_screen.grid_remove()
         self.table.master.grid()
         self.show_buttons_and_search()
 

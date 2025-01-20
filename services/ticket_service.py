@@ -98,3 +98,43 @@ class TicketService:
         if success:
             master.add_to_table(data)
         return success, message
+
+    def update_ticket_data(self, data, master):
+        """
+        تحديث بيانات رحلات السفر في قاعدة البيانات.
+        """
+        try:
+            update_data = {
+                "name": data[1],
+                "passport_number": data[2],
+                "from_place": data[3],
+                "to_place": data[4],
+                "booking_company": data[5],
+                "amount": data[6],
+                "currency": data[7],
+                "agent": data[8],
+                "net_amount": data[9],
+                "trip_date": data[10],
+                "office_name": data[11]
+            }
+
+            # تحديث البيانات في قاعدة البيانات
+            self.db_manager.update("Trips", data[0], **update_data)
+            return True, "تم تحديث البيانات بنجاح!"
+        except Exception as e:
+            return False, f"حدث خطأ أثناء تحديث البيانات: {str(e)}"
+        
+    def get_ticket_by_id(self, ticket_id):
+        query = self.db_manager.select("Trips", id=ticket_id)
+        if query:
+            return query[0]
+        return None
+    def delete_ticket_data(self, ticket_id):
+        """
+        حذف بيانات الرحلة من قاعدة البيانات باستخدام id.
+        """
+        try:
+            self.db_manager.delete("Trips", id=ticket_id)
+            return True, "تم حذف البيانات بنجاح!"
+        except Exception as e:
+            return False, f"حدث خطأ أثناء حذف البيانات: {str(e)}"

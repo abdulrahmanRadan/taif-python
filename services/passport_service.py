@@ -150,3 +150,15 @@ class PassportService:
             return True, "تم تحديث البيانات بنجاح!"
         except Exception as e:
             return False, f"حدث خطأ أثناء تحديث البيانات: {str(e)}"
+
+    def delete_passport_data(self, passport_id):
+        """
+        حذف بيانات جواز السفر من قاعدة البيانات باستخدام id.
+        """
+        try:
+            self.db_manager.delete("Passports", id=passport_id)
+            return True, "تم حذف البيانات بنجاح!"
+        except Exception as e:
+            return False, f"حدث خطأ أثناء حذف البيانات: {str(e)}"
+
+# 

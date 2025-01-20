@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 from ui.adds.add_passport_screen import AddPassportScreen
 from ui.edits.edit_passport_screen import EditPassportScreen
 from services.passport_service import PassportService
@@ -156,8 +156,19 @@ class PassportScreen(tk.Frame):
         """
         selected_item = self.table.selection()
         if selected_item:
-            item_id = self.table.item(selected_item, "values")[0]
-            print(f"حذف الصف ذو المعرف: {item_id}")
+            item_values = self.table.item(selected_item, "values")
+            item_id = item_values[0]
+            person_name = item_values[1]
+
+            # حذف البيانات من قاعدة البيانات
+            confirm = messagebox.askyesno("تاكيد الحذف", f"هل انت متاكد من حذف البيانات للمستخدم: {person_name}?")
+            if confirm:
+                success, message = self.service.delete_passport_data(item_id)
+                if success:
+                    self.table.delete(selected_item)
+                    messagebox.showinfo("نجاح", "تم حذف البيانات بنجاح!")
+                else:
+                    messagebox.showerror("خطأ", message)
 
     def on_search(self, event=None):
         """

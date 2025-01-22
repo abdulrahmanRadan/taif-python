@@ -103,6 +103,12 @@ class PassportScreen(tk.Frame):
         style.theme_use("default")
         style.configure("Treeview.Heading", background='#568CC6', foreground='white', font=("Arial", 12, "bold"))
         
+        # تخصيص لون رأس الجدول عند تحريك الماوس فوقه (hover)
+        style.map("Treeview.Heading",
+                background=[("active", "#295686")],  # لون الخلفية عند hover
+                foreground=[("active", "white")]     # لون النص عند hover
+                )
+
         self.table.pack(fill=tk.BOTH, expand=True)
         self.populate_table()
 

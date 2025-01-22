@@ -42,7 +42,7 @@ class UmrahScreen(tk.Frame):
         self.search_label = tk.Label(self.top_frame, text="بحث:", font=("Arial", 12), bg="white")
         self.search_label.grid(row=0, column=0, padx=(0, 5), sticky="w")
 
-        # حقل البحث
+        # حقل البحث مع حواف خارجية سماوية
         self.search_entry = tk.Entry(
             self.top_frame,
             font=("Arial", 12),
@@ -100,20 +100,35 @@ class UmrahScreen(tk.Frame):
         scroll_y.pack(side=tk.RIGHT, fill=tk.Y)
 
         # تعريف الأعمدة
-        self.table.heading("ID", text="ID")
-        self.table.heading("Name", text="اسم المعتمر")
-        self.table.heading("Passport Number", text="رقم الجواز")
-        self.table.heading("Phone Number", text="رقم الهاتف")
-        self.table.heading("Sponsor Name", text="اسم الضمين")
-        self.table.heading("Sponsor Number", text="رقم الضمين")
-        self.table.heading("Cost", text="التكلفة")
-        self.table.heading("Paid", text="الواصل")
-        self.table.heading("Remaining", text="الباقي")
-        self.table.heading("Entry Date", text="تاريخ الدخول")
-        self.table.heading("Exit Date", text="تاريخ الخروج")
-        self.table.heading("Status", text="الحالة")
-        self.table.heading("Days Left", text="عدد الأيام المتبقية")
+        columns = [
+            ("ID", "ID", 50),  # (اسم العمود, النص المعروض, العرض الافتراضي)
+            ("Name", "اسم المعتمر", 150),
+            ("Passport Number", "رقم الجواز", 120),
+            ("Phone Number", "رقم الهاتف", 120),
+            ("Sponsor Name", "اسم الضمين", 150),
+            ("Sponsor Number", "رقم الضمين", 120),
+            ("Cost", "التكلفة", 100),
+            ("Paid", "الواصل", 100),
+            ("Remaining", "الباقي", 100),
+            ("Entry Date", "تاريخ الدخول", 120),
+            ("Exit Date", "تاريخ الخروج", 120),
+            ("Status", "الحالة", 100),
+            ("Days Left", "عدد الأيام المتبقية", 120),
+        ]
 
+        for col_id, col_text, col_width in columns:
+            self.table.heading(col_id, text=col_text)
+            self.table.column(col_id, width=col_width, anchor="center")  # توسيط النص في الخلايا
+
+        # تخصيص ألوان الصفوف الزوجية والفردية
+        self.table.tag_configure("oddrow", background="#f0f0f0")  # لون الصفوف الفردية
+        self.table.tag_configure("evenrow", background="#ffffff")  # لون الصفوف الزوجية
+        
+        # تخصيص لون رأس الجدول
+        style = ttk.Style()
+        style.theme_use("default")
+        style.configure("Treeview.Heading", background='#568CC6', foreground='white', font=("Arial", 12, "bold"))
+        
         # عرض الجدول
         self.table.pack(fill=tk.BOTH, expand=True)
 
@@ -132,6 +147,18 @@ class UmrahScreen(tk.Frame):
                 self.table.insert("", tk.END, values=item, tags=("evenrow",))  # صف زوجي
             else:
                 self.table.insert("", tk.END, values=item, tags=("oddrow",))  # صف فردي
+
+        # ضبط عرض الأعمدة بناءً على طول البيانات
+        self.adjust_column_widths()
+
+    def adjust_column_widths(self):
+        """ضبط عرض الأعمدة بناءً على طول البيانات."""
+        for col in self.table["columns"]:
+            max_width = max(
+                self.table.column(col, "width"),  # العرض الحالي للعمود
+                max(len(str(self.table.set(row, col))) for row in self.table.get_children()) * 10  # أطول نص في العمود
+            )
+            self.table.column(col, width=min(max_width, 300))  # الحد الأقصى للعرض 300 بكسل
 
     def show_buttons(self, event=None):
         """عرض أزرار التعديل والحذف عند النقر على صف."""

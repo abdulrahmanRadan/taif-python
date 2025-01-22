@@ -94,6 +94,11 @@ class TicketScreen(tk.Frame):
         self.table.tag_configure("oddrow", background="#f0f0f0")  # لون الصفوف الفردية
         self.table.tag_configure("evenrow", background="#ffffff")  # لون الصفوف الزوجية
 
+        # تخصيص لون رأس الجدول
+        style = ttk.Style()
+        style.theme_use("default")
+        style.configure("Treeview.Heading", background='#568CC6', foreground='white', font=("Arial", 12, "bold"))
+        
         self.table.pack(fill=tk.BOTH, expand=True)
         self.populate_table()
         

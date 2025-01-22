@@ -97,7 +97,12 @@ class PassportScreen(tk.Frame):
         # تخصيص ألوان الصفوف الزوجية والفردية
         self.table.tag_configure("oddrow", background="#f0f0f0")  # لون الصفوف الفردية
         self.table.tag_configure("evenrow", background="#ffffff")  # لون الصفوف الزوجية
-
+        
+        # تخصيص لون رأس الجدول
+        style = ttk.Style()
+        style.theme_use("default")
+        style.configure("Treeview.Heading", background='#568CC6', foreground='white', font=("Arial", 12, "bold"))
+        
         self.table.pack(fill=tk.BOTH, expand=True)
         self.populate_table()
 
@@ -149,7 +154,6 @@ class PassportScreen(tk.Frame):
             else:
                 messagebox.showerror("خطأ", "لم يتم العثور على البيانات!")
 
-
     def delete_row(self):
         """
         دالة الحذف.
@@ -161,7 +165,7 @@ class PassportScreen(tk.Frame):
             person_name = item_values[1]
 
             # حذف البيانات من قاعدة البيانات
-            confirm = messagebox.askyesno("تاكيد الحذف", f"هل انت متاكد من حذف البيانات للمستخدم: {person_name}?")
+            confirm = messagebox.askyesno("تأكيد الحذف", f"هل أنت متأكد من حذف البيانات للمستخدم: {person_name}?")
             if confirm:
                 success, message = self.service.delete_passport_data(item_id)
                 if success:
@@ -225,4 +229,3 @@ class PassportScreen(tk.Frame):
         if selected_item:
             self.edit_button.grid(row=0, column=2, padx=10, sticky="e")  # عرض زر التعديل
             self.delete_button.grid(row=0, column=3, padx=10, sticky="e")  # عرض زر الحذف
-

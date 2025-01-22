@@ -156,4 +156,30 @@ class UmrahService:
         if query:
             return query[0]
         return None
+
+    def update_umrah_data(self, data, master):
+        """
+        تحديث بيانات رحلات السفر في قاعدة البيانات.
+        """
+        try:
+            update_data = {
+                "name": data[1],  # اسم المعتمر
+                "passport_number": data[2],  # رقم الجواز
+                "phone_number": data[3],  # رقم الهاتف
+                "sponsor_name": data[4],  # اسم الضمين
+                "sponsor_number": data[5],  # رقم الضمين
+                "cost": data[6],  # التكلفة
+                "paid": data[7],  # المبلغ المدفوع
+                "remaining_amount": data[8],  # المبلغ المتبقي
+                "entry_date": data[9],  # تاريخ الدخول
+                "exit_date": data[10],  # تاريخ الخروج
+                "status": data[11],  # الحالة
+                "currency": data[12],  # العملة
+            }
+
+            # تحديث البيانات في قاعدة البيانات
+            self.db_manager.update("Umrah", data[0], **update_data)
+            return True, "تم تحديث البيانات بنجاح!"
+        except Exception as e:
+            return False, f"حدث خطأ أثناء تحديث البيانات: {str(e)}"
 #

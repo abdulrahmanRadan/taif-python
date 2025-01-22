@@ -132,6 +132,8 @@ class EditUmrahScreen(tk.Frame):
 
     def populate_fields(self):
         """تعبئة الحقول بالبيانات المستردة من قاعدة البيانات."""
+        currency_map_reverse = {"1": "ر.ي", "2": "ر.س", "3": "دولار"}
+
         if self.data:
             self.name_entry.insert(0, self.data[1])  # الاسم
             self.passport_number_entry.insert(0, self.data[2])  # رقم الجواز
@@ -144,7 +146,9 @@ class EditUmrahScreen(tk.Frame):
             self.entry_date_entry.set_date(self.data[9])  # تاريخ الدخول
             self.exit_date_entry.set_date(self.data[10])  # تاريخ الخروج
             self.status_combobox.set(self.data[11])  # الحالة
-            self.currency_combobox.set(self.data[12])  # العملة
+            currency = str(self.data[12])
+            self.currency_combobox.set(currency_map_reverse.get(currency, "ر.ي"))
+        
 
     def save(self):
         """Handle saving the updated umrah data."""

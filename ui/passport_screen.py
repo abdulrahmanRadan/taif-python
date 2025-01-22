@@ -198,6 +198,7 @@ class PassportScreen(tk.Frame):
             self.edit_passport_screen.grid_remove()
         self.table.master.grid()
         self.show_buttons_and_search()
+        self.populate_table()
 
     def hide_buttons_and_search(self):
         """

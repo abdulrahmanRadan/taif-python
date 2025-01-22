@@ -121,9 +121,9 @@ class EditPassportScreen(tk.Frame):
         حساب الصافي والمبلغ المتبقي تلقائيًا.
         """
         try:
-            booking_price = float(self.booking_price.get())
-            purchase_price = float(self.purchase_price.get())
-            paid_amount = float(self.paid_amount.get())
+            booking_price = float(self.booking_price.get() or 0)
+            purchase_price = float(self.purchase_price.get() or 0)
+            paid_amount = float(self.paid_amount.get() or 0)
 
             # حساب الصافي
             net_amount = booking_price - purchase_price
@@ -141,17 +141,38 @@ class EditPassportScreen(tk.Frame):
         """
         تعبئة الحقول بالبيانات المستردة من قاعدة البيانات.
         """
+        type_map_reverse = {"1": "عادي", "2": "مستعجل عدن", "3": "مستعجل بيومه", "4": "غير ذلك"}
+        status_map_reverse = {"1": "في الطابعة", "2": "في المكتب", "3": "تم الاستلام", "4": "مرفوض"}
+        currency_map_reverse = {"1": "ر.ي", "2": "ر.س", "3": "دولار"}
+
         if self.data:
+            self.name_entry.delete(0, tk.END)
             self.name_entry.insert(0, self.data[1])  # الاسم
+            
             self.booking_date_entry.set_date(self.data[2])  # تاريخ الحجز
             self.receipt_date_entry.set_date(self.data[10])  # تاريخ الاستلام
-            self.type_combobox.set(self.data[3])  # نوع الجواز
-            self.booking_price.set(self.data[4])  # سعر الحجز
-            self.purchase_price.set(self.data[5])  # سعر الشراء
-            self.paid_amount.set(self.data[7])  # المبلغ المدفوع
-            self.currency_combobox.set(self.data[12])  # العملة
-            self.status_combobox.set(self.data[9])  # حالة الجواز
+            
+            # تحويل نوع الجواز من رقم إلى نص
+            passport_type = str(self.data[3])
+            self.type_combobox.set(type_map_reverse.get(passport_type, "عادي"))
+            
+            self.booking_price.set(str(self.data[4]))  # سعر الحجز
+            self.purchase_price.set(str(self.data[5]))  # سعر الشراء
+            self.paid_amount.set(str(self.data[7]))  # المبلغ المدفوع
+            
+            # تحويل العملة من رقم إلى نص
+            currency = str(self.data[12])
+            self.currency_combobox.set(currency_map_reverse.get(currency, "ر.ي"))
+            
+            # تحويل حالة الجواز من رقم إلى نص
+            status = str(self.data[9])
+            self.status_combobox.set(status_map_reverse.get(status, "في الطابعة"))
+            
+            self.receiver_name_entry.delete(0, tk.END)
             self.receiver_name_entry.insert(0, self.data[11])  # اسم المستلم
+            
+            # حساب القيم تلقائيًا بعد التحميل
+            self.calculate_amounts()
 
     def save(self):
         currency_map = {"ر.ي": "1", "ر.س": "2", "دولار": "3"}

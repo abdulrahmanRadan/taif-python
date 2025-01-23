@@ -46,6 +46,7 @@ class PassportScreen(tk.Frame):
             highlightthickness=2,       # سماكة الحواف
             relief=tk.FLAT              # إزالة الحواف الداخلية
         )
+
         self.search_entry.grid(row=0, column=1, padx=(0, 10), sticky="ew")
         self.search_entry.bind("<KeyRelease>", self.on_search)  # ربط حقل البحث بدالة البحث
 
@@ -114,7 +115,27 @@ class PassportScreen(tk.Frame):
 
         # ربط حدث النقر على صف في الجدول
         self.table.bind("<ButtonRelease-1>", self.show_buttons)
+        
+        # ربط حدث النقر على صف في الجدول
+        self.table.bind("<Double-Button-1>", self.on_double_click)
 
+    def on_double_click(self, event=None):
+        """
+        ربط حدث النقر على صف في الجدول.
+        """
+        selected_item = self.table.selection()
+        if selected_item:
+            item_id = self.table.item(selected_item, "values")[0]
+
+            data = self.service.get_passport_by_id(item_id)
+            if data:
+                self.edit_passport_screen = EditPassportScreen(self, self.show_main_screen, self.service, data)
+                self.edit_passport_screen.grid(row=1, column=0, sticky="nsew")
+                self.table.master.grid_remove()
+                self.hide_buttons_and_search()
+            else:
+                messagebox.showerror("خطأ", "لم يتم العثور على البيانات!")
+                
     def populate_table(self, data=None):
         """
         تعبئة الجدول بالبيانات.

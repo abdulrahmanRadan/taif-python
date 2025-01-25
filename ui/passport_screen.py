@@ -32,6 +32,7 @@ class PassportScreen(tk.Frame):
 
         self.edit_passport_screen = None  # واجهة التعديل
         self.buttons_visible = False  # False يعني أن الأزرار مخفية في البداية
+        self.previous_selected_item = None  # لتخزين الصف السابق
 
     def create_buttons(self):
         # زر البحث
@@ -157,20 +158,35 @@ class PassportScreen(tk.Frame):
         """
         عرض أزرار التعديل والحذف عند النقر على صف.
         """
-        if self.buttons_visible:
-            # إذا كانت الأزرار ظاهرة، نخفيها
+        selected_item = self.table.selection()
+        if selected_item:
+            if selected_item == self.previous_selected_item:
+                if self.buttons_visible:
+                    # إذا كانت الأزرار ظاهرة، نخفيها
+                    self.edit_button.grid_remove()
+                    self.delete_button.grid_remove()
+                    self.buttons_visible = False  # تحديث الحالة
+                else:
+                    selected_item = self.table.selection()
+                    if selected_item:
+                        self.edit_button.grid(row=0, column=2, padx=10, sticky="e")  # عرض زر التعديل
+                        self.delete_button.grid(row=0, column=3, padx=10, sticky="e")  # عرض زر الحذف
+                    else:
+                        self.edit_button.grid_remove()  # إخفاء زر التعديل
+                        self.delete_button.grid_remove()  # إخفاء زر الحذف
+                    self.buttons_visible = True  # تحديث الحالة
+            else:
+                if not self.buttons_visible:
+                    self.edit_button.grid(row=0, column=2, padx=10, sticky="e")
+                    self.delete_button.grid(row=0, column=3, padx=10, sticky="e")
+                    self.buttons_visible = True
+
+                self.previous_selected_item = selected_item
+        else:
             self.edit_button.grid_remove()
             self.delete_button.grid_remove()
-            self.buttons_visible = False  # تحديث الحالة
-        else:
-            selected_item = self.table.selection()
-            if selected_item:
-                self.edit_button.grid(row=0, column=2, padx=10, sticky="e")  # عرض زر التعديل
-                self.delete_button.grid(row=0, column=3, padx=10, sticky="e")  # عرض زر الحذف
-            else:
-                self.edit_button.grid_remove()  # إخفاء زر التعديل
-                self.delete_button.grid_remove()  # إخفاء زر الحذف
-            self.buttons_visible = True  # تحديث الحالة
+            self.buttons_visible = False
+            self.previous_selected_item = None
 
     def edit_row(self):
         """

@@ -31,6 +31,7 @@ class PassportScreen(tk.Frame):
         self.add_passport_screen.grid_remove()
 
         self.edit_passport_screen = None  # واجهة التعديل
+        self.buttons_visible = False  # False يعني أن الأزرار مخفية في البداية
 
     def create_buttons(self):
         # زر البحث
@@ -125,9 +126,13 @@ class PassportScreen(tk.Frame):
         """
         selected_item = self.table.selection()
         if selected_item:
+            # إخفاء أزرار التعديل والحذف
+            self.edit_button.grid_remove()
+            self.delete_button.grid_remove()
+            
             item_id = self.table.item(selected_item, "values")[0]
-
             data = self.service.get_passport_by_id(item_id)
+            
             if data:
                 self.edit_passport_screen = EditPassportScreen(self, self.show_main_screen, self.service, data)
                 self.edit_passport_screen.grid(row=1, column=0, sticky="nsew")
@@ -152,13 +157,20 @@ class PassportScreen(tk.Frame):
         """
         عرض أزرار التعديل والحذف عند النقر على صف.
         """
-        selected_item = self.table.selection()
-        if selected_item:
-            self.edit_button.grid(row=0, column=2, padx=10, sticky="e")  # عرض زر التعديل
-            self.delete_button.grid(row=0, column=3, padx=10, sticky="e")  # عرض زر الحذف
+        if self.buttons_visible:
+            # إذا كانت الأزرار ظاهرة، نخفيها
+            self.edit_button.grid_remove()
+            self.delete_button.grid_remove()
+            self.buttons_visible = False  # تحديث الحالة
         else:
-            self.edit_button.grid_remove()  # إخفاء زر التعديل
-            self.delete_button.grid_remove()  # إخفاء زر الحذف
+            selected_item = self.table.selection()
+            if selected_item:
+                self.edit_button.grid(row=0, column=2, padx=10, sticky="e")  # عرض زر التعديل
+                self.delete_button.grid(row=0, column=3, padx=10, sticky="e")  # عرض زر الحذف
+            else:
+                self.edit_button.grid_remove()  # إخفاء زر التعديل
+                self.delete_button.grid_remove()  # إخفاء زر الحذف
+            self.buttons_visible = True  # تحديث الحالة
 
     def edit_row(self):
         """

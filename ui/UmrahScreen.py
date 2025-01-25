@@ -36,6 +36,10 @@ class UmrahScreen(tk.Frame):
         # واجهة التعديل (سيتم إنشاؤها لاحقًا)
         self.edit_umrah_screen = None
 
+        # متغيرات لتتبع حالة الأزرار والصف السابق
+        self.buttons_visible = False  # False يعني أن الأزرار مخفية في البداية
+        self.previous_selected_item = None  # لتخزين الصف السابق
+
     def create_buttons(self):
         """إنشاء الأزرار وشريط البحث."""
         # زر البحث
@@ -144,6 +148,34 @@ class UmrahScreen(tk.Frame):
         # ربط حدث النقر على صف في الجدول
         self.table.bind("<ButtonRelease-1>", self.show_buttons)
 
+        # ربط حدث النقر المزدوج على صف في الجدول
+        self.table.bind("<Double-Button-1>", self.on_double_click)
+
+    def on_double_click(self, event=None):
+        """
+        فتح واجهة التعديل عند النقر المزدوج على صف.
+        """
+        selected_item = self.table.selection()
+        if selected_item:
+            # إخفاء أزرار التعديل والحذف
+            self.edit_button.grid_remove()
+            self.delete_button.grid_remove()
+
+            # جلب id الصف المحدد
+            item_id = self.table.item(selected_item, "values")[0]
+
+            # البحث في قاعدة البيانات باستخدام id
+            data = self.service.get_umrah_by_id(item_id)
+
+            if data:
+                # فتح واجهة التعديل مع البيانات المستردة
+                self.edit_umrah_screen = EditUmrahScreen(self, self.show_main_screen, self.service, data)
+                self.edit_umrah_screen.grid(row=1, column=0, sticky="nsew")
+                self.table.master.grid_remove()
+                self.hide_buttons_and_search()
+            else:
+                messagebox.showerror("خطأ", "لم يتم العثور على البيانات!")
+
     def populate_table(self, data=None):
         """تعبئة الجدول بالبيانات."""
         self.table.delete(*self.table.get_children())  # مسح الجدول الحالي
@@ -167,14 +199,38 @@ class UmrahScreen(tk.Frame):
             self.table.column(col, width=min(max_width, 300))  # الحد الأقصى للعرض 300 بكسل
 
     def show_buttons(self, event=None):
-        """عرض أزرار التعديل والحذف عند النقر على صف."""
+        """
+        عرض أزرار التعديل والحذف عند النقر على صف.
+        """
         selected_item = self.table.selection()
         if selected_item:
-            self.edit_button.grid(row=0, column=2, padx=10, sticky="e")  # عرض زر التعديل
-            self.delete_button.grid(row=0, column=3, padx=10, sticky="e")  # عرض زر الحذف
+            if selected_item == self.previous_selected_item:
+                # إذا تم النقر على نفس الصف، قم بتبديل حالة الأزرار
+                if self.buttons_visible:
+                    # إذا كانت الأزرار ظاهرة، نخفيها
+                    self.edit_button.grid_remove()
+                    self.delete_button.grid_remove()
+                    self.buttons_visible = False
+                else:
+                    # إذا كانت الأزرار مخفية، نظهرها
+                    self.edit_button.grid(row=0, column=2, padx=10, sticky="e")
+                    self.delete_button.grid(row=0, column=3, padx=10, sticky="e")
+                    self.buttons_visible = True
+            else:
+                # إذا تم النقر على صف آخر، نظهر الأزرار (إذا كانت مخفية)
+                if not self.buttons_visible:
+                    self.edit_button.grid(row=0, column=2, padx=10, sticky="e")
+                    self.delete_button.grid(row=0, column=3, padx=10, sticky="e")
+                    self.buttons_visible = True
+
+            # تحديث الصف السابق
+            self.previous_selected_item = selected_item
         else:
-            self.edit_button.grid_remove()  # إخفاء زر التعديل
-            self.delete_button.grid_remove()  # إخفاء زر الحذف
+            # إذا لم يتم تحديد أي صف، نخفي الأزرار
+            self.edit_button.grid_remove()
+            self.delete_button.grid_remove()
+            self.buttons_visible = False
+            self.previous_selected_item = None
 
     def edit_row(self):
         """عرض واجهة التعديل عند النقر على زر التعديل."""

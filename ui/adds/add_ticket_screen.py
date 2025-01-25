@@ -104,9 +104,25 @@ class AddTicketScreen(tk.Frame):
             self.net_amount.set("0.00")
 
     def save(self):
+        # التحقق من أن الحقول المطلوبة ليست فارغة
+        if not self.amount_entry.get() or not self.agent_entry.get():
+            messagebox.showerror("خطأ", "يرجى ملء جميع الحقول المطلوبة.")
+            return
+
+        try:
+            # تحويل القيم إلى أعداد عشرية
+            amount = float(self.amount_entry.get())
+            agent = float(self.agent_entry.get())
+            net = float(self.net_amount.get())
+        except ValueError:
+            messagebox.showerror("خطأ", "يرجى إدخال قيم رقمية صحيحة في الحقول المطلوبة.")
+            return
+
+        # تحويل العملة إلى رمز
         currency_map = {"ر.ي": "1", "ر.س": "2", "دولار": "3"}
         currency = currency_map.get(self.currency_combobox.get(), "1")
 
+        # تجميع البيانات
         data = (
             len(self.master.table.get_children()) + 1,
             self.name_entry.get(),
@@ -114,14 +130,15 @@ class AddTicketScreen(tk.Frame):
             self.from_place_entry.get(),
             self.to_place_entry.get(),
             self.company_entry.get(),
-            float(self.amount_entry.get()),
+            amount,  # استخدام القيمة المحولة
             currency,
-            float(self.agent_entry.get()),
-            float(self.net_amount.get()),
+            agent,  # استخدام القيمة المحولة
+            net,  # استخدام القيمة المحولة
             self.trip_date_entry.get_date().strftime("%Y-%m-%d"),
             self.office_combobox.get()
         )
 
+        # حفظ البيانات
         success, message = self.service.save_ticket_data(data, self.master)
         if success:
             messagebox.showinfo("نجاح", message)

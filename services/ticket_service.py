@@ -129,6 +129,7 @@ class TicketService:
         if query:
             return query[0]
         return None
+        
     def delete_ticket_data(self, ticket_id):
         """
         حذف بيانات الرحلة من قاعدة البيانات باستخدام id.

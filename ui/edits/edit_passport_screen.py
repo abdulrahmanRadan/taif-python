@@ -77,7 +77,7 @@ class EditPassportScreen(tk.Frame):
         self.receiver_name_entry = self.create_field(outer_frame, "اسم المستلم", row=6, column=2)
 
         # زر الحفظ
-        save_button = ttk.Button(outer_frame, text="حفظ", style="Blue.TButton", width=50, command=self.save)
+        save_button = ttk.Button(outer_frame, text="حفظ التعديلات", style="Blue.TButton", width=50, command=self.save)
         save_button.grid(row=7, column=0, columnspan=4, pady=20)
 
         for i in range(4):

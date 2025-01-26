@@ -44,7 +44,7 @@ class AddTicketScreen(tk.Frame):
         self.from_place_entry = self.create_field(outer_frame, "من مدينه ", row=2, column=0)
         self.to_place_entry = self.create_field(outer_frame, "إلى مدينه", row=2, column=2)
 
-        self.company_entry = self.create_field(outer_frame, "الشركة", row=3, column=0)
+        self.company_entry = self.create_field(outer_frame, "الشركةالناقله", row=3, column=0)
         self.amount_entry = self.create_field(outer_frame, "المبلغ", row=3, column=2)
         self.currency_combobox = self.create_field(outer_frame, "العملة", row=4, column=0, combobox_values=["ر.ي", "ر.س", "دولار"])
         self.agent_entry = self.create_field(outer_frame, "للوكيل", row=4, column=2)

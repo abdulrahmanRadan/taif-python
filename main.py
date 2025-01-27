@@ -63,6 +63,7 @@ class MainApp(tk.Tk):
         self.header_frame.grid_columnconfigure(2, weight=1)
         self.header_frame.grid_columnconfigure(3, weight=1)
         self.header_frame.grid_columnconfigure(4, weight=1)
+        self.header_frame.grid_columnconfigure(5, weight=1)
 
         # Define button styles
         button_style = {
@@ -99,6 +100,12 @@ class MainApp(tk.Tk):
             self.header_frame, text="الحجوزات", **button_style, command=lambda: self.show_frame(TicketScreen, self.ticket_button)
         )
         self.ticket_button.grid(row=0, column=4, sticky="nsew", padx=5, pady=10)
+        
+        # debts Button
+        self.debts_button = tk.Button(
+            self.header_frame, text="الديون", **button_style
+        )
+        self.debts_button.grid(row=0, column=5, sticky="nsew", padx=5, pady=10)
 
     def show_frame(self, frame_class, button):
         """Switch between frames (pages) and highlight the active button."""
@@ -111,7 +118,7 @@ class MainApp(tk.Tk):
 
         # Set the new active button
         self.active_button = button
-        self.active_button.config(bg="#328E8A")  # تغيير لون الزر النشط
+        self.active_button.config(bg="#17A8A1")  # تغيير لون الزر النشط
 
         # Show the new frame
         self.current_frame = frame_class(self)

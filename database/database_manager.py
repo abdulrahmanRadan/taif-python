@@ -15,6 +15,11 @@ class DatabaseManager:
 
     def create_tables(self):
         tables = {
+            "Users": """
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL
+            """,
             "Passports": """
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT,

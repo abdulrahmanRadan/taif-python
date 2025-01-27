@@ -44,7 +44,7 @@ class PassportScreen(tk.Frame):
             self.top_frame,
             font=("Arial", 12),
             width=30,
-            highlightbackground="cyan",  # لون الحواف الخارجية
+            highlightbackground="black",  # لون الحواف الخارجية
             highlightthickness=2,       # سماكة الحواف
             relief=tk.FLAT              # إزالة الحواف الداخلية
         )

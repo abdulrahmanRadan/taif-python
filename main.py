@@ -13,11 +13,11 @@ from database.database_manager import DatabaseManager
 class MainApp(tk.Tk):
     def __init__(self):
         super().__init__()
-        self.withdraw()  # إخفاء النافذة الرئيسية في البداية
+        # self.withdraw()  # إخفاء النافذة الرئيسية في البداية
         
         # إنشاء نافذة تسجيل الدخول
-        self.login_screen = LoginScreen(self)
-        self.login_screen.grab_set()
+        # self.login_screen = LoginScreen(self)
+        # self.login_screen.grab_set()
 
         self.title("مكتب طائف السالمي")
         self.geometry("800x600")

@@ -103,7 +103,7 @@ class PassportService:
             formatted_data.append(formatted_row[:12])  # إزالة العمود رقم 12 (العملة)
         return formatted_data
 
-    def get_passport_by_id(self, passport_id):
+    def get_by_id(self, passport_id):
         """
         جلب بيانات جواز السفر من قاعدة البيانات باستخدام id.
         """

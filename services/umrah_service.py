@@ -155,7 +155,7 @@ class UmrahService:
             master.add_to_table(data)
         return success, message
 
-    def get_umrah_by_id(self, umrah_id):
+    def get_by_id(self, umrah_id):
         query = self.db_manager.select("Umrah", id=umrah_id)
         if query:
             return query[0]

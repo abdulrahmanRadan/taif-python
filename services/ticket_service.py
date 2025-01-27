@@ -124,7 +124,7 @@ class TicketService:
         except Exception as e:
             return False, f"حدث خطأ أثناء تحديث البيانات: {str(e)}"
         
-    def get_ticket_by_id(self, ticket_id):
+    def get_by_id(self, ticket_id):
         query = self.db_manager.select("Trips", id=ticket_id)
         if query:
             return query[0]

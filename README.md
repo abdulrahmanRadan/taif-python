@@ -28,8 +28,8 @@ Taif Al-Salmi is a Windows desktop application designed to manage various servic
 
 ## Project Structure
 
-```
-Taif-python/
+````
+<!-- Taif-python/
 │
 ├── main.py                # Entry point of the application
 ├── services/              # Core logic and service handling
@@ -56,7 +56,7 @@ Taif-python/
     ├── report_2025_01.pdf
     ├── report_2025_01.xlsx
     └── ...
-```
+``` -->
 
 ---
 
@@ -72,9 +72,9 @@ Taif-python/
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/abdulrahmanRadan/taif-python.git
+   git clone https://github.com/abodme/taif-python.git
    cd taif-python
-   ```
+````
 
 2. Create a virtual environment:
 

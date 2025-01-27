@@ -3,14 +3,22 @@ from ui.home_screen import HomeScreen
 from ui.passport_screen import PassportScreen
 from ui.UmrahScreen import UmrahScreen
 from ui.TicketScreen import TicketScreen
+from ui.User.login_screen import LoginScreen
 
 # database
 from database.database_manager import DatabaseManager
 
 
+
 class MainApp(tk.Tk):
     def __init__(self):
         super().__init__()
+        self.withdraw()  # إخفاء النافذة الرئيسية في البداية
+        
+        # إنشاء نافذة تسجيل الدخول
+        self.login_screen = LoginScreen(self)
+        self.login_screen.grab_set()
+
         self.title("مكتب طائف السالمي")
         self.geometry("800x600")
         

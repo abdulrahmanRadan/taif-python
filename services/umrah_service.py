@@ -3,6 +3,8 @@ from database.database_manager import DatabaseManager
 from database.SearchManager import SearchManager
 from services.validator import Validator 
 from reports.umrah_exporter import UmrahExporter
+from datetime import date
+
 
 class UmrahService:
     def __init__(self, master):
@@ -54,6 +56,7 @@ class UmrahService:
             # تحويل التواريخ إلى نص (في حال لم تكن نصوصًا)
             entry_date = str(entry_date)
             exit_date = str(exit_date)
+            today = date.today()
             
             # تحويل التواريخ إلى كائنات من نوع date
             entry_date = datetime.strptime(entry_date, "%Y-%m-%d").date()
@@ -62,7 +65,8 @@ class UmrahService:
             # print("exit_date" , exit_date)
 
             # حساب الفرق بين تاريخ الخروج وتاريخ الدخول
-            days_left = (exit_date - entry_date).days
+
+            days_left = (exit_date - today).days
             # print(days_left)
 
             # تجنب القيم السالبة (إذا كان تاريخ الخروج قبل تاريخ الدخول)

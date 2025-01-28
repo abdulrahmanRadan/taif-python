@@ -11,6 +11,8 @@ class AddTicketScreen(tk.Frame):
 
         # Variables
         self.net_amount = tk.StringVar(value="0")
+        self.paid_amount = tk.StringVar(value="0")
+        self.remaining_amount = tk.StringVar(value="0")
 
         # Create Widgets
         self.create_widgets()
@@ -44,7 +46,7 @@ class AddTicketScreen(tk.Frame):
         self.from_place_entry = self.create_field(outer_frame, "من مدينه ", row=2, column=0)
         self.to_place_entry = self.create_field(outer_frame, "إلى مدينه", row=2, column=2)
 
-        self.company_entry = self.create_field(outer_frame, "الشركةالناقله", row=3, column=0)
+        self.company_entry = self.create_field(outer_frame, "الشركة الناقلة", row=3, column=0)
         self.amount_entry = self.create_field(outer_frame, "المبلغ", row=3, column=2)
         self.currency_combobox = self.create_field(outer_frame, "العملة", row=4, column=0, combobox_values=["ر.ي", "ر.س", "دولار"])
         self.agent_entry = self.create_field(outer_frame, "للوكيل", row=4, column=2)
@@ -54,6 +56,11 @@ class AddTicketScreen(tk.Frame):
 
         self.trip_date_entry = self.create_date_field(outer_frame, "تاريخ الرحلة", row=5, column=2)
         self.office_combobox = self.create_field(outer_frame, "المكتب", row=6, column=0, combobox_values=["مكتبنا", "الوادي", "طايف"])
+
+        self.paid_entry = self.create_field(outer_frame, "المدفوع", row=6, column=2, entry_var=self.paid_amount)
+        self.remaining_amount_label = self.create_field(outer_frame, "المتبقي", row=7, column=0, label_var=self.remaining_amount)
+
+        self.paid_entry.bind("<KeyRelease>", self.calculate_remaining_amount)
 
         save_button = ttk.Button(outer_frame, text="حفظ", style="Blue.TButton", width=50, command=self.save)
         save_button.grid(row=7, column=0, columnspan=4, pady=20)
@@ -100,29 +107,37 @@ class AddTicketScreen(tk.Frame):
             agent = float(self.agent_entry.get())
             net = self.service.calculate_net_amount(amount, agent)
             self.net_amount.set(f"{net:.2f}")
+            self.calculate_remaining_amount()
         except ValueError:
             self.net_amount.set("0.00")
 
+    def calculate_remaining_amount(self, event=None):
+        try:
+            net_amount = float(self.net_amount.get())
+            paid_amount = float(self.paid_amount.get())
+            remaining = max(0, net_amount - paid_amount)
+            self.remaining_amount.set(f"{remaining:.2f}")
+        except ValueError:
+            self.remaining_amount.set("0.00")
+
     def save(self):
-        # التحقق من أن الحقول المطلوبة ليست فارغة
-        if not self.amount_entry.get() or not self.agent_entry.get():
+        if not self.amount_entry.get() or not self.agent_entry.get() or not self.paid_entry.get():
             messagebox.showerror("خطأ", "يرجى ملء جميع الحقول المطلوبة.")
             return
 
         try:
-            # تحويل القيم إلى أعداد عشرية
             amount = float(self.amount_entry.get())
             agent = float(self.agent_entry.get())
             net = float(self.net_amount.get())
+            paid = float(self.paid_amount.get())
+            remaining = float(self.remaining_amount.get())
         except ValueError:
-            messagebox.showerror("خطأ", "يرجى إدخال قيم رقمية صحيحة في الحقول المطلوبة.")
+            messagebox.showerror("خطأ", "يرجى إدخال قيم رقمية صحيحة.")
             return
 
-        # تحويل العملة إلى رمز
         currency_map = {"ر.ي": "1", "ر.س": "2", "دولار": "3"}
         currency = currency_map.get(self.currency_combobox.get(), "1")
 
-        # تجميع البيانات
         data = (
             len(self.master.table.get_children()) + 1,
             self.name_entry.get(),
@@ -130,15 +145,16 @@ class AddTicketScreen(tk.Frame):
             self.from_place_entry.get(),
             self.to_place_entry.get(),
             self.company_entry.get(),
-            amount,  # استخدام القيمة المحولة
+            amount,
             currency,
-            agent,  # استخدام القيمة المحولة
-            net,  # استخدام القيمة المحولة
+            agent,
+            net,
             self.trip_date_entry.get_date().strftime("%Y-%m-%d"),
-            self.office_combobox.get()
+            self.office_combobox.get(),
+            paid,
+            remaining
         )
 
-        # حفظ البيانات
         success, message = self.service.save_ticket_data(data, self.master)
         if success:
             messagebox.showinfo("نجاح", message)

@@ -13,7 +13,7 @@ class TicketService:
     def add_ticket_data(self, data):
         columns = [
             "name", "passport_number", "from_place", "to_place", "booking_company",
-            "amount", "currency", "agent", "net_amount", "trip_date", "office_name"
+            "amount", "currency", "agent", "net_amount", "trip_date", "office_name", "paid", "remaining_amount"
         ]
         data_dict = dict(zip(columns, data[1:]))
 
@@ -28,7 +28,8 @@ class TicketService:
             "agent": ["required", "numeric:2"],
             "net_amount": ["required", "numeric:2"],
             "trip_date": ["required"],
-            "office_name": ["required"]
+            "office_name": ["required"],
+            "paid": ["required", "numeric:2"]
         }
 
         if self.validator.validate(data_dict, rules):
@@ -68,9 +69,12 @@ class TicketService:
         استرجاع البيانات من قاعدة البيانات وإزالة العمود رقم 6 (العملة) باستخدام مولد.
         """
         data = self.db_manager.select("Trips")
+        updated_data = []
         for row in data:
+            row = list(row)
             formatted_row = self.merge_currency_with_amounts(row)  # دمج العملة مع الأعمدة
-            yield formatted_row[:7] + formatted_row[8:]  # إزالة العمود رقم 6
+            updated_data.append(formatted_row[:7] + formatted_row[8:])  # إزالة العمود رقم 6
+        return updated_data
 
     def search_data(self, search_term: str):
         """
@@ -115,7 +119,9 @@ class TicketService:
                 "agent": data[8],
                 "net_amount": data[9],
                 "trip_date": data[10],
-                "office_name": data[11]
+                "office_name": data[11],
+                "paid": data[12],
+                "remaining_amount": data[13]
             }
 
             # تحديث البيانات في قاعدة البيانات

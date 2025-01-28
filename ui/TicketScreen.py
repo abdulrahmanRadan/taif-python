@@ -6,5 +6,5 @@ from ui.base_screen import BaseScreen
 
 class TicketScreen(BaseScreen):
     def __init__(self, master):
-        columns = ("ID", "الاسم", "رقم الجواز", "من", "إلى", "الشركة", "المبلغ", "للوكيل", "الصافي", "تاريخ الرحلة", "المكتب")
+        columns = ("ID", "الاسم", "رقم الجواز", "من", "إلى", "الشركة", "المبلغ", "للوكيل", "الصافي", "تاريخ الرحلة", "المكتب", "مدفوع", "المتبقي")
         super().__init__(master, TicketService(master), AddTicketScreen, EditTicketScreen, columns)

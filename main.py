@@ -2,8 +2,10 @@ import tkinter as tk
 from ui.home_screen import HomeScreen
 from ui.passport_screen import PassportScreen
 from ui.UmrahScreen import UmrahScreen
+from ui.debt_screen import DebtScreen
 from ui.TicketScreen import TicketScreen
 from ui.User.login_screen import LoginScreen
+
 
 # database
 from database.database_manager import DatabaseManager
@@ -103,7 +105,7 @@ class MainApp(tk.Tk):
         
         # debts Button
         self.debts_button = tk.Button(
-            self.header_frame, text="الديون", **button_style
+            self.header_frame, text="الديون", **button_style,  command=lambda: self.show_frame(DebtScreen, self.debts_button)
         )
         self.debts_button.grid(row=0, column=5, sticky="nsew", padx=5, pady=10)
 

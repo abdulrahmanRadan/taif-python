@@ -62,7 +62,9 @@ class DatabaseManager:
                 agent TEXT,                       -- المبلغ للوكيل
                 net_amount REAL,                  -- المبلغ الصافي (يُحسب تلقائيًا)
                 trip_date TEXT,                   -- تاريخ الرحلة
-                office_name TEXT                  -- اسم المكتب (مكتبنا، الوادي، الطايف)
+                office_name TEXT,                 -- اسم المكتب (مكتبنا، الوادي، الطايف)
+                paid REAL,                        -- المبلغ المدفوع
+                remaining_amount REAL             -- المبلغ المتبقي
             """
 
         }
@@ -91,6 +93,10 @@ class DatabaseManager:
             return self.execute_read_query(query, tuple(filters.values()))
         return self.execute_read_query(query)
 
+    def select_with_condition(self, table_name, condition):
+        query = f"SELECT * FROM {table_name} WHERE {condition}"
+        return self.execute_read_query(query)
+
     def update(self, table_name, identifier, **kwargs):
         set_clause = ', '.join([f"{key} = ?" for key in kwargs])
         query = f"UPDATE {table_name} SET {set_clause} WHERE id = ?"
@@ -115,3 +121,11 @@ class DatabaseManager:
 
     def close(self):
         self.connection.close()
+
+    def add_columns_to_trips(self):
+        try:
+            self.execute_query("ALTER TABLE Trips ADD COLUMN paid REAL")
+            self.execute_query("ALTER TABLE Trips ADD COLUMN remaining_amount REAL")
+            print("تمت إضافة الأعمدة بنجاح.")
+        except sqlite3.OperationalError as e:
+            print(f"خطأ أثناء إضافة الأعمدة: {e}")

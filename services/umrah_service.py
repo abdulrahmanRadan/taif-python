@@ -196,4 +196,5 @@ class UmrahService:
             return True, "تم حذف البيانات بنجاح!"
         except Exception as e:
             return False, f"حدث خطأ أثناء حذف البيانات: {str(e)}"
+
 #

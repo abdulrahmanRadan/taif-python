@@ -186,4 +186,14 @@ class UmrahService:
             return True, "تم تحديث البيانات بنجاح!"
         except Exception as e:
             return False, f"حدث خطأ أثناء تحديث البيانات: {str(e)}"
+
+    def delete_data(self, id):
+        """
+        حذف بيانات جواز السفر من قاعدة البيانات باستخدام id.
+        """
+        try:
+            self.db_manager.delete("Umrah", id=id)
+            return True, "تم حذف البيانات بنجاح!"
+        except Exception as e:
+            return False, f"حدث خطأ أثناء حذف البيانات: {str(e)}"
 #

@@ -151,7 +151,7 @@ class PassportService:
         except Exception as e:
             return False, f"حدث خطأ أثناء تحديث البيانات: {str(e)}"
 
-    def delete_passport_data(self, passport_id):
+    def delete_data(self, passport_id):
         """
         حذف بيانات جواز السفر من قاعدة البيانات باستخدام id.
         """

@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import math
 
 class BaseScreen(tk.Frame):
     def __init__(self, master, service, add_screen_class, edit_screen_class, columns):
@@ -10,17 +11,24 @@ class BaseScreen(tk.Frame):
         self.edit_screen_class = edit_screen_class
         self.columns = columns
 
-        self.grid_rowconfigure(1, weight=1)
+        self.current_page =1
+        self.rows_per_page = 10
+
+        self.grid_rowconfigure(2, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
         self.top_frame = tk.Frame(self, bg="white")
         self.top_frame.grid(row=0, column=0, sticky="ew", pady=10, padx=10)
+
+        self.bottom_frame = tk.Frame(self, bg="white")
+        self.bottom_frame.grid(row=2, column=0, sticky="ew", pady=10)
 
         for i in range(6):
             self.top_frame.grid_columnconfigure(i, weight=1)
 
         self.create_buttons()
         self.create_table_section()
+        self.create_pagination_controls()
 
         self.add_screen = self.add_screen_class(self, self.show_main_screen, self.service)
         self.add_screen.grid(row=1, column=0, sticky="nsew")
@@ -29,6 +37,94 @@ class BaseScreen(tk.Frame):
         self.edit_screen = None
         self.buttons_visible = False
         self.previous_selected_item = None
+
+    def create_pagination_controls(self):
+        # إضافة مرونة لتوسيع الإطار العلوي والسفلي بشكل ديناميكي
+        self.grid_rowconfigure(1, weight=1)  # لإضافة مساحة فارغة أسفل الأزرار
+
+        # الأزرار السفلية داخل إطار سفلي
+        self.bottom_frame = tk.Frame(self, bg="white")
+        self.bottom_frame.grid(row=3, column=0, sticky="nsew", pady=(10, 20))
+
+        # إضافة توزيع الأزرار في منتصف الشاشة أفقيًا
+        self.bottom_frame.grid_columnconfigure(0, weight=1)  # فراغ على اليسار
+        self.bottom_frame.grid_columnconfigure(1, weight=1)  # العمود الخاص بالأزرار
+        self.bottom_frame.grid_columnconfigure(2, weight=1)  # فراغ على اليمين
+
+        # زر السابق
+        self.previous_button = tk.Button(
+            self.bottom_frame,
+            text="السابق",
+            font=("Arial", 12),
+            command=self.go_to_previous_page,
+            state=tk.DISABLED,
+            bg="#4CAF50",  # لون الخلفية
+            fg="white",    # لون النص
+            relief=tk.RAISED,
+            bd=2
+        )
+        self.previous_button.grid(row=0, column=0, padx=10, pady=5, sticky="e")
+
+        # صفحة حالية
+        self.page_label = tk.Label(
+            self.bottom_frame, 
+            text=f"الصفحة: {self.current_page}", 
+            font=("Arial", 12),
+            bg="white"
+        )
+        self.page_label.grid(row=0, column=1, pady=5)
+
+        # زر التالي
+        self.next_button = tk.Button(
+            self.bottom_frame,
+            text="التالي",
+            font=("Arial", 12),
+            command=self.go_to_next_page,
+            bg="#4CAF50",  # لون الخلفية
+            fg="white",    # لون النص
+            relief=tk.RAISED,
+            bd=2
+        )
+        self.next_button.grid(row=0, column=2, padx=10, pady=5, sticky="w")
+
+    
+    def go_to_previous_page(self):
+        if self.current_page >1:
+            self.current_page -= 1
+            self.update_pagination_controls()
+            self.refresh_table()
+
+    def go_to_next_page(self):
+        total_rows = len(self.service.get_all_data())
+        total_pages = math.ceil(total_rows / self.rows_per_page)
+
+        if self.current_page < total_pages:
+            self.current_page += 1
+            self.update_pagination_controls()
+            self.refresh_table()
+    
+    def update_pagination_controls(self):
+        total_rows = len(self.service.get_all_data())
+        total_pages = math.ceil(total_rows / self.rows_per_page)
+
+        self.page_label.config(text=f"الصفحة: {self.current_page}")
+
+        if self.current_page == 1:
+            self.previous_button.config(state=tk.DISABLED)
+        else:
+            self.previous_button.config(state=tk.NORMAL)
+
+        if self.current_page == total_pages:
+            self.next_button.config(state=tk.DISABLED)
+        else:
+            self.next_button.config(state=tk.NORMAL)
+        
+    def refresh_table(self):
+        all_data = self.service.get_all_data()
+        start_index = (self.current_page - 1) * self.rows_per_page
+        end_index = start_index + self.rows_per_page
+        self.populate_table(all_data[start_index:end_index])
+    
 
     def create_buttons(self):
         self.search_label = tk.Label(self.top_frame, text="بحث:", font=("Arial", 12), bg="white")
@@ -69,9 +165,12 @@ class BaseScreen(tk.Frame):
         scroll_x = tk.Scrollbar(table_frame, orient=tk.HORIZONTAL)
         scroll_y = tk.Scrollbar(table_frame, orient=tk.VERTICAL)
 
+        # عكس ترتيب الأعمدة
+        reversed_columns = list(reversed(self.columns))
+
         self.table = ttk.Treeview(
             table_frame,
-            columns=self.columns,
+            columns=reversed_columns,  # استخدام الأعمدة المعكوسة
             xscrollcommand=scroll_x.set,
             yscrollcommand=scroll_y.set,
             show="headings"
@@ -82,9 +181,16 @@ class BaseScreen(tk.Frame):
         scroll_x.pack(side=tk.BOTTOM, fill=tk.X)
         scroll_y.pack(side=tk.RIGHT, fill=tk.Y)
 
-        for col in self.columns:
+        total_columns = len(reversed_columns)
+        table_width = table_frame.winfo_width()
+
+        for col in reversed_columns:
+            if col == "ID":
+                # print("ID", col)
+                self.table.column(col, width=30, minwidth=10, stretch=False, anchor="center")
+            else:
+                self.table.column(col, width=int((table_width - 50) / (total_columns - 1)), anchor="center")
             self.table.heading(col, text=col)
-            self.table.column(col, width=120)
 
         self.table.tag_configure("oddrow", background="#f0f0f0")
         self.table.tag_configure("evenrow", background="#ffffff")
@@ -95,7 +201,8 @@ class BaseScreen(tk.Frame):
         style.map("Treeview.Heading", background=[("active", "#295686")], foreground=[("active", "white")])
 
         self.table.pack(fill=tk.BOTH, expand=True)
-        self.populate_table()
+
+        self.refresh_table()
 
         self.table.bind("<ButtonRelease-1>", self.show_buttons)
         self.table.bind("<Double-Button-1>", self.on_double_click)
@@ -106,8 +213,10 @@ class BaseScreen(tk.Frame):
             self.edit_button.grid_remove()
             self.delete_button.grid_remove()
 
-            item_id = self.table.item(selected_item, "values")[0]
+            item_id = self.table.item(selected_item, "values")[-1]
+            # print("item",item_id)
             data = self.service.get_by_id(item_id)
+            # print(data)
 
             if data:
                 self.edit_screen = self.edit_screen_class(self, self.show_main_screen, self.service, data)
@@ -121,10 +230,11 @@ class BaseScreen(tk.Frame):
         self.table.delete(*self.table.get_children())
         data = data if data is not None else self.service.get_all_data()
         for index, item in enumerate(data):
+            reversed_item = list(reversed(item))
             if index % 2 == 0:
-                self.table.insert("", tk.END, values=item, tags=("evenrow",))
+                self.table.insert("", tk.END, values=reversed_item, tags=("evenrow",))
             else:
-                self.table.insert("", tk.END, values=item, tags=("oddrow",))
+                self.table.insert("", tk.END, values=reversed_item, tags=("oddrow",))
 
     def show_buttons(self, event=None):
         selected_item = self.table.selection()
@@ -154,7 +264,7 @@ class BaseScreen(tk.Frame):
     def edit_row(self):
         selected_item = self.table.selection()
         if selected_item:
-            item_id = self.table.item(selected_item, "values")[0]
+            item_id = self.table.item(selected_item, "values")[-1]
             data = self.service.get_by_id(item_id)
 
             if data:
@@ -169,8 +279,8 @@ class BaseScreen(tk.Frame):
         selected_item = self.table.selection()
         if selected_item:
             item_values = self.table.item(selected_item, "values")
-            item_id = item_values[0]
-            person_name = item_values[1]
+            item_id = item_values[-1]
+            person_name = item_values[-2]
 
             confirm = messagebox.askyesno("تأكيد الحذف", f"هل أنت متأكد من حذف البيانات للمستخدم: {person_name}?")
             if confirm:

@@ -11,7 +11,7 @@ class BaseScreen(tk.Frame):
         self.edit_screen_class = edit_screen_class
         self.columns = columns
 
-        self.current_page =1
+        self.current_page = 1
         self.rows_per_page = 10
 
         self.grid_rowconfigure(2, weight=1)
@@ -39,33 +39,28 @@ class BaseScreen(tk.Frame):
         self.previous_selected_item = None
 
     def create_pagination_controls(self):
-        # إضافة مرونة لتوسيع الإطار العلوي والسفلي بشكل ديناميكي
-        self.grid_rowconfigure(1, weight=1)  # لإضافة مساحة فارغة أسفل الأزرار
+        self.grid_rowconfigure(1, weight=1)
 
-        # الأزرار السفلية داخل إطار سفلي
         self.bottom_frame = tk.Frame(self, bg="white")
         self.bottom_frame.grid(row=3, column=0, sticky="nsew", pady=(10, 20))
 
-        # إضافة توزيع الأزرار في منتصف الشاشة أفقيًا
-        self.bottom_frame.grid_columnconfigure(0, weight=1)  # فراغ على اليسار
-        self.bottom_frame.grid_columnconfigure(1, weight=1)  # العمود الخاص بالأزرار
-        self.bottom_frame.grid_columnconfigure(2, weight=1)  # فراغ على اليمين
+        self.bottom_frame.grid_columnconfigure(0, weight=1)
+        self.bottom_frame.grid_columnconfigure(1, weight=1)
+        self.bottom_frame.grid_columnconfigure(2, weight=1)
 
-        # زر السابق
         self.previous_button = tk.Button(
             self.bottom_frame,
             text="السابق",
             font=("Arial", 12),
             command=self.go_to_previous_page,
             state=tk.DISABLED,
-            bg="#4CAF50",  # لون الخلفية
-            fg="white",    # لون النص
+            bg="#4CAF50",
+            fg="white",
             relief=tk.RAISED,
             bd=2
         )
         self.previous_button.grid(row=0, column=0, padx=10, pady=5, sticky="e")
 
-        # صفحة حالية
         self.page_label = tk.Label(
             self.bottom_frame, 
             text=f"الصفحة: {self.current_page}", 
@@ -74,22 +69,26 @@ class BaseScreen(tk.Frame):
         )
         self.page_label.grid(row=0, column=1, pady=5)
 
-        # زر التالي
         self.next_button = tk.Button(
             self.bottom_frame,
             text="التالي",
             font=("Arial", 12),
             command=self.go_to_next_page,
-            bg="#4CAF50",  # لون الخلفية
-            fg="white",    # لون النص
+            bg="#4CAF50",
+            fg="white",
             relief=tk.RAISED,
             bd=2
         )
         self.next_button.grid(row=0, column=2, padx=10, pady=5, sticky="w")
 
+    def hide_pagination_controls(self):
+        self.bottom_frame.grid_remove()
     
+    def show_pagination_controls(self):
+        self.bottom_frame.grid()
+
     def go_to_previous_page(self):
-        if self.current_page >1:
+        if self.current_page > 1:
             self.current_page -= 1
             self.update_pagination_controls()
             self.refresh_table()
@@ -165,12 +164,11 @@ class BaseScreen(tk.Frame):
         scroll_x = tk.Scrollbar(table_frame, orient=tk.HORIZONTAL)
         scroll_y = tk.Scrollbar(table_frame, orient=tk.VERTICAL)
 
-        # عكس ترتيب الأعمدة
         reversed_columns = list(reversed(self.columns))
 
         self.table = ttk.Treeview(
             table_frame,
-            columns=reversed_columns,  # استخدام الأعمدة المعكوسة
+            columns=reversed_columns,
             xscrollcommand=scroll_x.set,
             yscrollcommand=scroll_y.set,
             show="headings"
@@ -186,7 +184,6 @@ class BaseScreen(tk.Frame):
 
         for col in reversed_columns:
             if col == "ID":
-                # print("ID", col)
                 self.table.column(col, width=30, minwidth=10, stretch=False, anchor="center")
             else:
                 self.table.column(col, width=int((table_width - 50) / (total_columns - 1)), anchor="center")
@@ -214,11 +211,10 @@ class BaseScreen(tk.Frame):
             self.delete_button.grid_remove()
 
             item_id = self.table.item(selected_item, "values")[-1]
-            # print("item",item_id)
             data = self.service.get_by_id(item_id)
-            # print(data)
 
             if data:
+                self.hide_pagination_controls()  # إخفاء الترقيم
                 self.edit_screen = self.edit_screen_class(self, self.show_main_screen, self.service, data)
                 self.edit_screen.grid(row=1, column=0, sticky="nsew")
                 self.table.master.grid_remove()
@@ -268,6 +264,7 @@ class BaseScreen(tk.Frame):
             data = self.service.get_by_id(item_id)
 
             if data:
+                self.hide_pagination_controls()  # إخفاء الترقيم
                 self.edit_screen = self.edit_screen_class(self, self.show_main_screen, self.service, data)
                 self.edit_screen.grid(row=1, column=0, sticky="nsew")
                 self.table.master.grid_remove()
@@ -300,11 +297,13 @@ class BaseScreen(tk.Frame):
         self.populate_table(results)
 
     def show_add_screen(self):
+        self.hide_pagination_controls()  # إخفاء الترقيم
         self.table.master.grid_remove()
         self.add_screen.grid()
         self.hide_buttons_and_search()
 
     def show_main_screen(self):
+        self.show_pagination_controls()  # إظهار الترقيم
         if self.add_screen:
             self.add_screen.grid_remove()
         if self.edit_screen:

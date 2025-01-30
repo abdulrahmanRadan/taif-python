@@ -65,7 +65,19 @@ class DatabaseManager:
                 office_name TEXT,                 -- اسم المكتب (مكتبنا، الوادي، الطايف)
                 paid REAL,                        -- المبلغ المدفوع
                 remaining_amount REAL             -- المبلغ المتبقي
+            """,
+            "Payments": """
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                debt_type TEXT NOT NULL,  -- نوع الدين (Passports, Umrah, Trips)
+                debt_id INTEGER NOT NULL,  -- معرف الدين في الجدول الأصلي
+                amount REAL NOT NULL,  -- مبلغ الدفعة
+                payment_date TEXT NOT NULL,  -- تاريخ السداد
+                payment_method TEXT,  -- طريقة الدفع (نقدي، حوالة، إلخ)
+                FOREIGN KEY (debt_id) REFERENCES Passports(id),
+                FOREIGN KEY (debt_id) REFERENCES Umrah(id),
+                FOREIGN KEY (debt_id) REFERENCES Trips(id)
             """
+
 
         }
         for table_name, columns in tables.items():

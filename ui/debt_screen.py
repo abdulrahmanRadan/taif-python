@@ -9,7 +9,7 @@ class DebtScreen(tk.Frame):
         super().__init__(master, bg="white")
         self.master = master
         self.service = DebtService(master)
-        self.columns = ("ID", "الاسم", "النوع", "التاريخ", "المبلغ باليمني", "المبلغ بالسعودي", "الواصل", "تاريخ الواصل", "نوع الواصل")
+        self.columns = ("ID", "الاسم", "النوع", "التاريخ", "المبلغ باليمني", "المبلغ بالسعودي","المتبقي", "الواصل", "تاريخ الواصل", "نوع الواصل")
         
         self.current_page = 1
         self.rows_per_page = 10
@@ -154,14 +154,56 @@ class DebtScreen(tk.Frame):
         self.update_pagination_controls()
 
     def refresh_table(self):
+        # جلب البيانات الكاملة
         self.table.delete(*self.table.get_children())
         all_data = self.service.get_all_data()
-        start_idx = (self.current_page - 1) * self.rows_per_page
-        end_idx = start_idx + self.rows_per_page
-        
-        for idx, item in enumerate(all_data[start_idx:end_idx]):
+
+        # إعداد الأعمدة الديناميكية
+        base_columns = ["ID", "الاسم", "النوع", "التاريخ", "المبلغ باليمني", "المبلغ بالسعودي", "المتبقي"]
+        max_payment_count = max((len(debt["payments"]) for debt in all_data), default=0)
+
+        payment_columns = [
+            f"المبلغ {i + 1}" for i in range(max_payment_count)
+        ] + [
+            f"تاريخ {i + 1}" for i in range(max_payment_count)
+        ] + [
+            f"نوع {i + 1}" for i in range(max_payment_count)
+        ]
+
+        dynamic_columns = base_columns + payment_columns
+        self.table["columns"] = list(reversed(dynamic_columns))
+
+        # تحديث رؤوس الأعمدة
+        for col in reversed(dynamic_columns):
+            self.table.heading(col, text=col)
+            self.table.column(col, anchor="center", width=150)
+
+        # تعبئة الجدول
+        for idx, debt in enumerate(all_data):
             tags = "evenrow" if idx % 2 == 0 else "oddrow"
-            self.table.insert("", tk.END, values=list(reversed(item)), tags=(tags,))
+            row_data = [
+                debt.get("id", ""),
+                debt.get("name", ""),
+                debt.get("type", ""),
+                debt.get("date", ""),
+                debt.get("ym_paid", 0),
+                debt.get("sm_paid", 0),
+                debt.get("remaining", 0),
+            ]
+
+            # إضافة المدفوعات الديناميكية
+            for payment in debt.get("payments", []):
+                row_data.extend([
+                    payment.get("amount", ""),
+                    payment.get("date", ""),
+                    payment.get("method", ""),
+                ])
+
+            # تعبئة باقي الأعمدة الفارغة إذا لم تكن هناك مدفوعات كافية
+            row_data.extend([""] * (len(dynamic_columns) - len(row_data)))
+
+            self.table.insert("", tk.END, values=list(reversed(row_data)), tags=(tags,))
+
 
     def update_pagination_controls(self):
         total_rows = len(self.service.get_all_data())

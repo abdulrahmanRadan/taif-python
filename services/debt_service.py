@@ -52,44 +52,48 @@ class DebtService:
 
     def get_all_data(self):
         """
-        استرجاع جميع الديون غير المسددة.
+        استرجاع جميع الديون غير المسددة مع المدفوعات المرتبطة بكل دين.
         """
         debts = []
-        tables = [
-            ("Passports", "booking_date"),
-            ("Umrah", "entry_date"),
-            ("Trips", "trip_date")
-        ]
-        
+        tables = [("Passports", "booking_date")]
+
         for table, date_column in tables:
             records = self.db_manager.select_with_condition(table, "remaining_amount > 0")
+
             for record in records:
                 payments = self.get_payments(table, record[0])
-                debt_data = {
-                    "id": record[0],
-                    "name": record[1],
-                    "type": table,
-                    "date": record[2] if table == "Passports" else record[9] if table == "Umrah" else record[10],  # التاريخ المناسب
-                    "total": record[6],  # net_amount
-                    "paid": record[7],   # paid_amount
-                    "remaining": record[8], # remaining_amount
-                    "currency": self.format_currency(record[-1]),
-                    "payments": []
-                }
-                
-                for idx, payment in enumerate(payments, 1):
-                    debt_data["payments"].append({
-                        "number": idx,
+                debt_data = self.get_passport_data(record)
+
+                # إضافة قائمة المدفوعات (إذا كانت موجودة)
+                debt_data["payments"] = [
+                    {
                         "amount": payment[3],
                         "date": payment[4],
                         "method": payment[5]
-                    })
-                
+                    }
+                    for payment in payments
+                ]
+
                 debts.append(debt_data)
+
+        # فرز الديون بناءً على التاريخ (إن وجد)
+        debts.sort(
+            key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d") if x["date"] else datetime.min,
+            reverse=True
+        )
         
-        debts.sort(key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d") if x["date"] else datetime.min, reverse=True)
-        
-        return [list(debt.values()) for debt in debts]
+        return debts
+
+    def get_passport_data(self, record):
+        return {
+            "id": record[0],
+            "name": record[1],
+            "type": "passport",
+            "date": record[2],
+            "ym_paid": record[7] if record[-1] == 1 else 0 if record[-1] == 3 else 0,
+            "sm_paid": record[7] if record[-1] == 2 else 0 if record[-1] == 3 else 0,
+            "remaining": record[8],
+        }
 
     def mark_debt_as_paid(self, debt_id, service_type):
         """
@@ -105,6 +109,7 @@ class DebtService:
             return True, "تم تحديث حالة الدين إلى مدفوع."
         except Exception as e:
             return False, f"حدث خطأ أثناء تحديث حالة الدين: {str(e)}"
+   
 
     def export_to_excel(self):
         print("hello wrold")

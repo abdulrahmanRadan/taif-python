@@ -94,27 +94,35 @@ class UmrahService:
         return tuple(row)
 
     def get_all_data(self):
-        """الحصول على جميع بيانات المعتمرين مع حساب عدد الأيام المتبقية."""
+        """الحصول على جميع بيانات المعتمرين مع تعديل ترتيب الأعمدة لعرضها بشكل صحيح."""
         data = self.db_manager.select("Umrah")
         updated_data = []
+        
         for record in data:
-            # تحويل البيانات إلى قائمة لتعديلها
             record_list = list(record)
             
-            # دمج العملة مع الأعمدة المالية (cost, paid, remaining_amount)
-            formatted_row = self.merge_currency_with_amounts(record_list)
-            
-            # حذف العمود الأخير (currency) بعد دمجه مع الأعمدة الأخرى
-            formatted_row = list(formatted_row[:-1])  # تحويل tuple إلى list وإزالة آخر عنصر (currency)
-            
             # حساب عدد الأيام المتبقية
-            days_left = self.calculate_days_left(formatted_row[9], formatted_row[10])  # تاريخ الدخول (9) وتاريخ الخروج (10)
+            days_left = self.calculate_days_left(record_list[9], record_list[10])
             
-            # إضافة عدد الأيام المتبقية إلى السجل
-            formatted_row.append(days_left)
+            # تنسيق بيانات المعتمر لتتوافق مع الأعمدة المطلوبة
+            formatted_row = (
+                record_list[0],   # ID
+                record_list[1],   # الاسم
+                record_list[2],   # رقم الجواز
+                record_list[9],   # من (تاريخ الدخول)
+                record_list[10],  # إلى (تاريخ الخروج)
+                record_list[4],   # الشركة (اسم الضامن)
+                f"{record_list[6]} {self.format_currency(record_list[12])}",  # المبلغ (التكلفة)
+                f"{record_list[7]} {self.format_currency(record_list[12])}",  # للوكيل (المدفوع)
+                f"{record_list[8]} {self.format_currency(record_list[12])}",  # الصافي (المتبقي)
+                days_left,        # تاريخ الرحلة (عدد الأيام المتبقية)
+                self.format_currency(record_list[12])  # المكتب (العملة)
+            )
             
             updated_data.append(formatted_row)
+        
         return updated_data
+
 
     def search_data(self, search_term: str):
         """

@@ -185,6 +185,8 @@ class BaseScreen(tk.Frame):
         for col in reversed_columns:
             if col == "ID":
                 self.table.column(col, width=30, minwidth=10, stretch=False, anchor="center")
+            elif col == "الاسم":
+                self.table.column(col, width=100, minwidth=100, anchor="center")
             else:
                 self.table.column(col, width=int((table_width - 50) / (total_columns - 1)), anchor="center")
             self.table.heading(col, text=col)

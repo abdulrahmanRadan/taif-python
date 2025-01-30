@@ -9,7 +9,7 @@ class DebtScreen(tk.Frame):
         super().__init__(master, bg="white")
         self.master = master
         self.service = DebtService(master)
-        self.columns = ("ID", "الاسم", "النوع", "التاريخ", "المبلغ باليمني", "المبلغ بالسعودي","المتبقي", "الواصل", "تاريخ الواصل", "نوع الواصل")
+        self.columns = ("ID", "الاسم", "النوع", "التاريخ", "المبلغ باليمني", "المبلغ بالسعودي","\u0627\u0644\u0645\u062a\u0628\u0642\u064a", "\u0627\u0644\u0648\u0627\u0635\u0644", "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0648\u0627\u0635\u0644", "\u0646\u0648\u0639 \u0627\u0644\u0648\u0627\u0635\u0644")
         
         self.current_page = 1
         self.rows_per_page = 10
@@ -97,7 +97,8 @@ class DebtScreen(tk.Frame):
         # Configure Columns
         for col in reversed_columns:
             self.table.heading(col, text=col)
-            self.table.column(col, anchor="center", width=150)
+            width = 50 if col == "ID" else 150  # تصغير حجم عمود ID
+            self.table.column(col, anchor="center", width=width)
 
         # Styling
         self.style = ttk.Style()
@@ -107,10 +108,7 @@ class DebtScreen(tk.Frame):
             foreground="white", 
             font=("Arial", 12, "bold"))
         self.style.map("Custom.Treeview.Heading", 
-                     background=[("active", "#295686")])
-
-        self.table.tag_configure("oddrow", background="#f0f0f0")
-        self.table.tag_configure("evenrow", background="#ffffff")
+                background=[("active", "#295686")])
 
         self.table.pack(fill=tk.BOTH, expand=True)
         self.table.bind("<ButtonRelease-1>", self.show_buttons)
@@ -153,10 +151,10 @@ class DebtScreen(tk.Frame):
 
         self.update_pagination_controls()
 
-    def refresh_table(self):
-        # جلب البيانات الكاملة
+    def refresh_table(self, data=None):
+        # حذف البيانات القديمة من الجدول
         self.table.delete(*self.table.get_children())
-        all_data = self.service.get_all_data()
+        all_data = data if data else self.service.get_all_data()
 
         # إعداد الأعمدة الديناميكية
         base_columns = ["ID", "الاسم", "النوع", "التاريخ", "المبلغ باليمني", "المبلغ بالسعودي", "المتبقي"]
@@ -176,11 +174,10 @@ class DebtScreen(tk.Frame):
         # تحديث رؤوس الأعمدة
         for col in reversed(dynamic_columns):
             self.table.heading(col, text=col)
-            self.table.column(col, anchor="center", width=150)
+            self.table.column(col, anchor="center", width=50 if col == "ID" else 150)
 
         # تعبئة الجدول
         for idx, debt in enumerate(all_data):
-            tags = "evenrow" if idx % 2 == 0 else "oddrow"
             row_data = [
                 debt.get("id", ""),
                 debt.get("name", ""),
@@ -199,11 +196,11 @@ class DebtScreen(tk.Frame):
                     payment.get("method", ""),
                 ])
 
-            # تعبئة باقي الأعمدة الفارغة إذا لم تكن هناك مدفوعات كافية
+            # تعبئة باقي الأعمدة الفارغة
             row_data.extend([""] * (len(dynamic_columns) - len(row_data)))
 
-            self.table.insert("", tk.END, values=list(reversed(row_data)), tags=(tags,))
-
+            # إدراج الصف
+            self.table.insert("", tk.END, values=list(reversed(row_data)))
 
     def update_pagination_controls(self):
         total_rows = len(self.service.get_all_data())
@@ -212,9 +209,6 @@ class DebtScreen(tk.Frame):
         self.previous_button.config(state=tk.NORMAL if self.current_page > 1 else tk.DISABLED)
         self.next_button.config(state=tk.NORMAL if self.current_page < total_pages else tk.DISABLED)
         self.page_label.config(text=f"الصفحة: {self.current_page}")
-
-    # بقية الدوال (on_search, show_buttons, edit_row, ...) تبقى كما هي مع تعديلات طفيفة في التنسيق
-    # ... (يجب الحفاظ على الدوال الأخرى مع تعديلات التنسيق فقط)
 
     def on_double_click(self, event):
         selected_item = self.table.selection()

@@ -63,7 +63,6 @@ class DebtService:
             for record in records:
                 payments = self.get_payments(table, record[0])
                 debt_data = self.get_passport_data(record)
-
                 # إضافة قائمة المدفوعات (إذا كانت موجودة)
                 debt_data["payments"] = [
                     {
@@ -90,11 +89,13 @@ class DebtService:
             "name": record[1],
             "type": "passport",
             "date": record[2],
-            "ym_paid": record[7] if record[-1] == 1 else 0 if record[-1] == 3 else 0,
-            "sm_paid": record[7] if record[-1] == 2 else 0 if record[-1] == 3 else 0,
+            "ym_paid": record[4] if record[-1] == '1' else 0 if record[-1] == '3' else 0,
+            "sm_paid": record[4] if record[-1] == '2' else 0 if record[-1] == '3' else 0,
             "remaining": record[8],
         }
 
+    def get_by_id(self, debt_id):
+        return self.db_manager.select("Passports", id=debt_id)
     def mark_debt_as_paid(self, debt_id, service_type):
         """
         تحديث حالة الدين إلى مدفوع.

@@ -134,10 +134,10 @@ class DatabaseManager:
     def close(self):
         self.connection.close()
 
-    def add_columns_to_trips(self):
-        try:
-            self.execute_query("ALTER TABLE Trips ADD COLUMN paid REAL")
-            self.execute_query("ALTER TABLE Trips ADD COLUMN remaining_amount REAL")
-            print("تمت إضافة الأعمدة بنجاح.")
-        except sqlite3.OperationalError as e:
-            print(f"خطأ أثناء إضافة الأعمدة: {e}")
+    # def add_columns_to_trips(self):
+    #     try:
+    #         self.execute_query("ALTER TABLE Trips ADD COLUMN paid REAL")
+    #         self.execute_query("ALTER TABLE Trips ADD COLUMN remaining_amount REAL")
+    #         print("تمت إضافة الأعمدة بنجاح.")
+    #     except sqlite3.OperationalError as e:
+    #         print(f"خطأ أثناء إضافة الأعمدة: {e}")

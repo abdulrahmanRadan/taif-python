@@ -72,7 +72,7 @@ Taif Al-Salmi is a Windows desktop application designed to manage various servic
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/abodme/taif-python.git
+   git clone https://github.com/radanpro/taif-python.git
    cd taif-python
 ````
 

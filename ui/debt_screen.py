@@ -4,6 +4,7 @@ from services.debt_service import DebtService
 from ui.edits.edit_ticket_screen import EditTicketScreen
 import math
 
+
 class DebtScreen(tk.Frame):
     def __init__(self, master):
         super().__init__(master, bg="white")

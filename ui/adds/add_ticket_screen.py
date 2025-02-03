@@ -63,7 +63,7 @@ class AddTicketScreen(tk.Frame):
         self.paid_entry.bind("<KeyRelease>", self.calculate_remaining_amount)
 
         save_button = ttk.Button(outer_frame, text="حفظ", style="Blue.TButton", width=50, command=self.save)
-        save_button.grid(row=7, column=0, columnspan=4, pady=20)
+        save_button.grid(row=8, column=0, columnspan=4, pady=20)
 
         for i in range(4):
             outer_frame.grid_columnconfigure(i, weight=1, uniform="col")

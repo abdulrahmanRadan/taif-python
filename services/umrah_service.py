@@ -160,7 +160,7 @@ class UmrahService:
         """حفظ بيانات المعتمر وإضافتها إلى الجدول."""
         success, message = self.add_umrah_data(data)
         if success:
-            master.add_to_table(data)
+            master.refresh_table()
         return success, message
 
     def get_by_id(self, umrah_id):

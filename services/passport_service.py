@@ -120,7 +120,7 @@ class PassportService:
     def save_passport_data(self, data, master):
         success, message = self.add_passport_data(data)
         if success:
-            master.add_to_table(data)
+            master.refresh_table()
         return success, message
 
 

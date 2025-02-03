@@ -113,9 +113,9 @@ class AddTicketScreen(tk.Frame):
 
     def calculate_remaining_amount(self, event=None):
         try:
-            net_amount = float(self.net_amount.get())
+            amount = float(self.amount_entry.get())
             paid_amount = float(self.paid_amount.get())
-            remaining = max(0, net_amount - paid_amount)
+            remaining = max(0, amount - paid_amount)
             self.remaining_amount.set(f"{remaining:.2f}")
         except ValueError:
             self.remaining_amount.set("0.00")
@@ -130,7 +130,7 @@ class AddTicketScreen(tk.Frame):
             agent = float(self.agent_entry.get())
             net = float(self.net_amount.get())
             paid = float(self.paid_amount.get())
-            remaining = float(self.remaining_amount.get())
+            remaining_amount = float(self.remaining_amount.get())
         except ValueError:
             messagebox.showerror("خطأ", "يرجى إدخال قيم رقمية صحيحة.")
             return
@@ -152,7 +152,7 @@ class AddTicketScreen(tk.Frame):
             self.trip_date_entry.get_date().strftime("%Y-%m-%d"),
             self.office_combobox.get(),
             paid,
-            remaining
+            remaining_amount   
         )
 
         success, message = self.service.save_ticket_data(data, self.master)

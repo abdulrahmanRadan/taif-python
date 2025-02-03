@@ -62,8 +62,8 @@ class DebtService:
                 "name": record[1],
                 "type": "Passports",
                 "date": record[2] if isinstance(record[2], str) else "",
-                "ym_paid": record[4] if record[-1] == '1' else 0,
-                "sm_paid": record[4] if record[-1] == '2' else 0,
+                "ym_paid": f"{record[4]} ر.ي" if record[-1] == '1' else "0",
+                "sm_paid": f"{record[4]} ر.س" if record[-1] == '2' else "0",
                 "remaining": record[8],
             }
         elif table == "Umrah":
@@ -71,9 +71,9 @@ class DebtService:
                 "id": record[0],
                 "name": record[1],
                 "type": "Umrah",
-                "date": record[8] if isinstance(record[8], str) else "",
-                "ym_paid": record[6] if record[-1] == '1' else 0,
-                "sm_paid": record[6] if record[-1] == '2' else 0,
+                "date": record[9] if isinstance(record[9], str) else "",
+                "ym_paid": f"{record[6]} ر.ي" if record[-1] == '1' else "0 ",
+                "sm_paid": f"{record[6]} ر.س" if record[-1] == '2' else "0 ",
                 "remaining": record[7],
             }
         elif table == "Trips":
@@ -81,10 +81,10 @@ class DebtService:
                 "id": record[0],
                 "name": record[1],
                 "type": "Trips",
-                "date": record[9] if isinstance(record[9], str) else "",
-                "ym_paid": record[6] if record[6] == '1' else 0,
-                "sm_paid": record[6] if record[6] == '2' else 0,
-                "remaining": record[12],
+                "date": record[10] if isinstance(record[10], str) else "",
+                "ym_paid": f"{record[6]} ر.ي" if record[7] == '1' else "0",
+                "sm_paid": f"{record[6]}ر.س" if record[7] == '2' else "0",
+                "remaining": record[13],
             }
 
     def get_by_id(self, debt_id):

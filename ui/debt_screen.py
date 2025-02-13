@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from services.debt_service import DebtService
-from ui.shows.show_debt import ShowDebt 
+from ui.shows.show_debt import ShowDebt
 import math
 
 
@@ -10,7 +10,7 @@ class DebtScreen(tk.Frame):
         super().__init__(master, bg="white")
         self.master = master
         self.service = DebtService(master)
-        self.columns = ("ID", "الاسم", "النوع", "التاريخ", "المبلغ باليمني", "المبلغ بالسعودي","\u0627\u0644\u0645\u062a\u0628\u0642\u064a", "\u0627\u0644\u0648\u0627\u0635\u0644", "\u062a\u0627\u0631\u064a\u062e \u0627\u0644\u0648\u0627\u0635\u0644", "\u0646\u0648\u0639 \u0627\u0644\u0648\u0627\u0635\u0644")
+        self.columns = ("ID", "الاسم", "النوع", "التاريخ", "المبلغ باليمني", "المبلغ بالسعودي", "المتبقي")
         
         self.current_page = 1
         self.rows_per_page = 10
@@ -46,7 +46,7 @@ class DebtScreen(tk.Frame):
         self.search_entry.bind("<KeyRelease>", self.on_search)
 
         # Edit Button
-        self.view_button  = tk.Button(
+        self.view_button = tk.Button(
             self.top_frame, 
             text="عرض التفاصيل", 
             bg="#295686", 
@@ -157,28 +157,8 @@ class DebtScreen(tk.Frame):
         self.table.delete(*self.table.get_children())
         all_data = data if data else self.service.get_all_data()
 
-        # إعداد الأعمدة الديناميكية
-        base_columns = ["ID", "الاسم", "النوع", "التاريخ", "المبلغ باليمني", "المبلغ بالسعودي", "المتبقي"]
-        max_payment_count = max((len(debt["payments"]) for debt in all_data), default=0)
-
-        payment_columns = [
-            f"المبلغ {i + 1}" for i in range(max_payment_count)
-        ] + [
-            f"تاريخ {i + 1}" for i in range(max_payment_count)
-        ] + [
-            f"نوع {i + 1}" for i in range(max_payment_count)
-        ]
-
-        dynamic_columns = base_columns + payment_columns
-        self.table["columns"] = list(reversed(dynamic_columns))
-
-        # تحديث رؤوس الأعمدة
-        for col in reversed(dynamic_columns):
-            self.table.heading(col, text=col)
-            self.table.column(col, anchor="center", width=50 if col == "ID" else 150)
-
-        # تعبئة الجدول
-        for idx, debt in enumerate(all_data):
+        # تعبئة الجدول بالبيانات الأساسية
+        for debt in all_data:
             row_data = [
                 debt.get("id", ""),
                 debt.get("name", ""),
@@ -188,19 +168,7 @@ class DebtScreen(tk.Frame):
                 debt.get("sm_paid", 0),
                 debt.get("remaining", 0),
             ]
-
-            # إضافة المدفوعات الديناميكية
-            for payment in debt.get("payments", []):
-                row_data.extend([
-                    payment.get("amount", ""),
-                    payment.get("date", ""),
-                    payment.get("method", ""),
-                ])
-
-            # تعبئة باقي الأعمدة الفارغة
-            row_data.extend([""] * (len(dynamic_columns) - len(row_data)))
-
-            # إدراج الصف
+            
             self.table.insert("", tk.END, values=list(reversed(row_data)))
 
     def update_pagination_controls(self):
@@ -214,7 +182,13 @@ class DebtScreen(tk.Frame):
     def on_double_click(self, event):
         selected_item = self.table.selection()
         if selected_item:
-            self.show_debt_details()
+            item_values = self.table.item(selected_item, "values")
+            
+            # القيم معكوسة بسبب reversed_columns
+            debt_id = item_values[-1]  # العمود الأول (ID)
+            debt_type = item_values[-3]  # العمود الثالث (النوع)
+            
+            self.show_debt_details(debt_id, debt_type)
 
     def show_buttons(self, event=None):
         selected_item = self.table.selection()
@@ -242,19 +216,19 @@ class DebtScreen(tk.Frame):
         results = self.service.search_data(search_term) if search_term else self.service.get_all_data()
         self.refresh_table(results)
 
-    def show_debt_details(self):
-        selected_item = self.table.selection()
-        if not selected_item:
-            messagebox.showwarning("تحذير", "يرجى تحديد دين أولاً")
-            return
+    def show_debt_details(self, debt_id=None, debt_type=None):
+        if not debt_id or not debt_type:
+            selected_item = self.table.selection()
+            if selected_item:
+                item_values = self.table.item(selected_item, "values")
+                debt_id = item_values[-1]  # العمود الأول (ID)
+                debt_type = item_values[-3]  # العمود الثالث (النوع)
+            else:
+                messagebox.showwarning("تحذير", "يرجى تحديد دين لعرض تفاصيله")
+                return
 
-        item_values = self.table.item(selected_item, "values")
-        debt_id = item_values[-1]
-        debt_type = item_values[-3]
-
-        # إخفاء الإطار الرئيسي
         self.pack_forget()
-
+    
         # عرض شاشة التفاصيل
         self.show_debt_screen = ShowDebt(
             self.master,
@@ -263,6 +237,7 @@ class DebtScreen(tk.Frame):
             self.service,
             self.return_to_main_screen
         )
+        self.show_debt_screen.pack(fill=tk.BOTH, expand=True)
 
     def return_to_main_screen(self):
         # إخفاء شاشة التفاصيل وإظهار الشاشة الرئيسية

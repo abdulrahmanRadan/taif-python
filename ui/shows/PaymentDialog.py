@@ -122,7 +122,7 @@ class PaymentDialog(tk.Frame):
             )
             
             messagebox.showinfo("نجاح", "تمت إضافة العملية بنجاح")
-            self.return_callback()
+            self.on_back_clicked()
             
         except ValueError as e:
             messagebox.showerror("خطأ", f"قيمة غير صحيحة: {str(e)}")

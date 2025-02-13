@@ -32,22 +32,9 @@ class DebtService:
             records = self.db_manager.select_with_condition(table, "remaining_amount > 0")
 
             for record in records:
-                payments = self.get_payments(table, record[0])
                 debt_data = self.format_record_data(table, record)
-
-                # إضافة قائمة المدفوعات (إذا كانت موجودة)
-                debt_data["payments"] = [
-                    {
-                        "amount": payment[3],
-                        "date": payment[4],
-                        "method": payment[5]
-                    }
-                    for payment in payments
-                ]
-
                 debts.append(debt_data)
 
-        # فرز الديون بناءً على التاريخ (إذا كانت موجودة وصالحة)
         debts.sort(
             key=lambda x: datetime.strptime(x["date"], "%Y-%m-%d") if isinstance(x["date"], str) and x["date"] else datetime.min,
             reverse=True
@@ -116,12 +103,13 @@ class DebtService:
 
     def add_payment(self, debt_type, debt_id, amount, payment_date, payment_method):
         """إضافة عملية دفع جديدة"""
-        return self.db_manager.insert("Payments", {
+        # print(f"ddd ${debt_type, debt_id, amount, payment_date, payment_method}")
+        return self.db_manager.insert("Payments", **{
             "debt_type": debt_type,
             "debt_id": debt_id,
             "amount": amount,
             "payment_date": payment_date,
-            "payment_method": payment_method
+            "payment_method": payment_method,
         })
 
     def get_payments(self, debt_type, debt_id):

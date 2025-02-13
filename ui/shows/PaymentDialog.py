@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+from tkcalendar import DateEntry  # استيراد مكون التقويم
 
 class PaymentDialog(tk.Frame):
     def __init__(self, master, debt_type, debt_id, service, return_callback):
@@ -30,14 +31,18 @@ class PaymentDialog(tk.Frame):
                                 bg="#e74c3c",
                                 fg="white",
                                 font=("Arial", 14),
-                                command=self.on_back_clicked)  # استدعاء return_callback مباشرة
+                                command=self.on_back_clicked)
         self.back_btn.place(x=20, y=15)
 
         # Form Section
         form_frame = tk.Frame(self, bg="#f0f4f7")
         form_frame.pack(pady=30, padx=50)
+
+        # حقول القراءة فقط
+        self.add_readonly_field(form_frame, 'نوع الدين:', self.debt_type, 0)
+        self.add_readonly_field(form_frame, 'رقم الدين:', self.debt_id, 1)
         
-        # Form Fields
+        # الحقول القابلة للتعديل
         fields = [
             ("المبلغ:", "amount"),
             ("تاريخ السداد:", "payment_date"),
@@ -45,20 +50,30 @@ class PaymentDialog(tk.Frame):
         ]
         
         self.entries = {}
-        for row, (label, field) in enumerate(fields):
+        row = 2  # بدء من الصف الثالث بعد الحقول الثابتة
+        for (label, field) in fields:  # التصحيح هنا
             lbl = tk.Label(form_frame, 
                           text=label,
                           font=("Arial", 14),
                           bg="#f0f4f7")
             lbl.grid(row=row, column=0, pady=15, sticky="e")
             
-            entry = tk.Entry(form_frame,
-                            font=("Arial", 14),
-                            width=25,
-                            bg="white",
-                            relief=tk.GROOVE)
+            if field == "payment_date":
+                entry = DateEntry(form_frame,
+                                font=("Arial", 14),
+                                width=25,
+                                bg="white",
+                                date_pattern='yyyy-mm-dd')
+            else:
+                entry = tk.Entry(form_frame,
+                                font=("Arial", 14),
+                                width=25,
+                                bg="white",
+                                relief=tk.GROOVE)
+            
             entry.grid(row=row, column=1, padx=20, pady=15)
             self.entries[field] = entry
+            row += 1
 
         # Save Button
         save_btn = tk.Button(self,
@@ -69,23 +84,48 @@ class PaymentDialog(tk.Frame):
                            command=self.save_payment)
         save_btn.pack(pady=30)
 
-    def save_payment(self):
-        data = {
-            "debt_type": self.debt_type,
-            "debt_id": self.debt_id,
-            "amount": self.entries["amount"].get(),
-            "payment_date": self.entries["payment_date"].get(),
-            "payment_method": self.entries["payment_method"].get()
-        }
+    def add_readonly_field(self, parent, label, value, row):
+        """إضافة حقل قراءة فقط"""
+        tk.Label(parent,
+               text=label,
+               font=("Arial", 14),
+               bg="#f0f4f7").grid(row=row, column=0, pady=15, sticky="e")
         
-        if not all(data.values()):
-            messagebox.showwarning("خطأ", "جميع الحقول مطلوبة")
-            return
-            
+        entry = tk.Entry(parent,
+            font=("Arial", 14),
+            width=25,
+            bg="#f0f4f7",
+            relief=tk.FLAT)
+        entry.insert(0, str(value))  # تحويل القيمة لنص
+        entry.config(state='readonly')  # تعيين القراءة فقط بعد الإدخال
+        entry.grid(row=row, column=1, padx=20, pady=15)
+
+    def save_payment(self):
         try:
-            self.service.add_payment(data)
+            # جمع البيانات من الحقول مباشرة مع التحقق من القيم
+            amount = self.entries["amount"].get()
+            payment_date = self.entries["payment_date"].get()
+            payment_method = self.entries["payment_method"].get()
+
+            # التحقق من عدم وجود حقول فارغة
+            if not all([amount, payment_date, payment_method]):
+                messagebox.showwarning("خطأ", "جميع الحقول مطلوبة")
+                return
+
+            # استدعاء خدمة الإضافة مع تمرير البارامترات بشكل صحيح
+            self.service.add_payment(
+                debt_type=self.debt_type,
+                debt_id=self.debt_id,
+                amount=amount,
+                payment_date=payment_date,
+                payment_method=payment_method
+            )
+            
             messagebox.showinfo("نجاح", "تمت إضافة العملية بنجاح")
             self.return_callback()
+            
+        except ValueError as e:
+            messagebox.showerror("خطأ", f"قيمة غير صحيحة: {str(e)}")
         except Exception as e:
             messagebox.showerror("خطأ", f"فشل في الحفظ: {str(e)}")
 
@@ -102,7 +142,7 @@ class PaymentDialog(tk.Frame):
         self.unbind_all("<MouseWheel>")
         self.destroy()
         
-        # 2. إعادة عرض شاشة ShowDebt
+        # 2. إعادة عرض الشاشة السابقة
         self.return_callback()
         
 # لا تستدعي self.return_callback() هنا

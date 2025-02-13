@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from services.debt_service import DebtService
-from ui.edits.edit_ticket_screen import EditTicketScreen
+from ui.edits.edit_debt_screen import EditDebtScreen  # استيراد شاشة التعديل
 import math
 
 
@@ -236,21 +236,39 @@ class DebtScreen(tk.Frame):
             self.current_page += 1
             self.refresh_table()
             self.update_pagination_controls()
+
     def on_search(self, event=None):
         search_term = self.search_entry.get().strip()
         results = self.service.search_data(search_term) if search_term else self.service.get_all_data()
         self.refresh_table(results)
-    
+
     def edit_row(self):
         selected_item = self.table.selection()
         if selected_item:
-            item_id = self.table.item(selected_item, "values")[0]
-            data = self.service.get_by_id(item_id)
-            if data:
-                EditTicketScreen(self.master, data)
-            else:
-                messagebox.showerror("خطأ", "لم يتم العثور على البيانات!")
-    
+            # جلب بيانات الصف المحدد
+            item_values = self.table.item(selected_item, "values")
+            item_id = item_values[-1]  # الـ ID هو العمود الأول
+            debt_type = item_values[-3]  # نوع الدين (Passports, Umrah, Trips)
+            # print(f"item_id  {item_id}")
+            # print(f"debt_type  {debt_type}")
+            
+            # فتح شاشة التعديل
+            edit_debt_screen = EditDebtScreen(
+                self.master,  # النافذة الرئيسية
+                self.return_to_debt_screen,  # دالة الرجوع إلى الشاشة الرئيسية
+                self.service,  # خدمة الديون
+                item_id,  # معرف الدين
+                debt_type  # نوع الدين
+            )
+            edit_debt_screen.pack(fill=tk.BOTH, expand=True)
+            self.pack_forget()  # إخفاء الشاشة الحالية
+        else:
+            messagebox.showwarning("تحذير", "يرجى تحديد دين لتعديله.")
+
+    def return_to_debt_screen(self):
+        self.pack(fill=tk.BOTH, expand=True)  # إعادة عرض الشاشة الرئيسية
+        self.refresh_table()  # تحديث الجدول لعرض التغييرات
+
     def delete_row(self):
         selected_item = self.table.selection()
         if selected_item:

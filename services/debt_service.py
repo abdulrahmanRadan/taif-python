@@ -87,8 +87,15 @@ class DebtService:
                 "remaining": record[13],
             }
 
-    def get_by_id(self, debt_id):
-        return self.db_manager.select("Passports", id=debt_id)
+    def get_by_id(self, debt_id, debt_type):
+        if debt_type == "Passports":
+            return self.db_manager.select("Passports", id=debt_id)
+        elif debt_type == "Umrah":
+            return self.db_manager.select("Umrah", id=debt_id)
+        elif debt_type == "Trips":
+            return self.db_manager.select("Trips", id=debt_id)
+
+
     def mark_debt_as_paid(self, debt_id, service_type):
         """
         تحديث حالة الدين إلى مدفوع.
@@ -103,7 +110,6 @@ class DebtService:
             return True, "تم تحديث حالة الدين إلى مدفوع."
         except Exception as e:
             return False, f"حدث خطأ أثناء تحديث حالة الدين: {str(e)}"
-   
 
     def export_to_excel(self):
         print("hello wrold")

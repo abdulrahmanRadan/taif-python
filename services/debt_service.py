@@ -114,3 +114,25 @@ class DebtService:
     def export_to_excel(self):
         print("hello wrold")
 
+    def add_payment(self, debt_type, debt_id, amount, payment_date, payment_method):
+        """إضافة عملية دفع جديدة"""
+        return self.db_manager.insert("Payments", {
+            "debt_type": debt_type,
+            "debt_id": debt_id,
+            "amount": amount,
+            "payment_date": payment_date,
+            "payment_method": payment_method
+        })
+
+    def get_payments(self, debt_type, debt_id):
+        """استرجاع المدفوعات مع التنسيق الجديد"""
+        payments = self.db_manager.select("Payments",
+            debt_type=debt_type,
+            debt_id=debt_id
+        )
+        return [{
+            "id": p[0],
+            "amount": p[3],
+            "payment_date": p[4],
+            "payment_method": p[5]
+        } for p in payments]

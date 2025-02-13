@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from services.debt_service import DebtService
-from ui.edits.edit_debt_screen import EditDebtScreen  # استيراد شاشة التعديل
+from ui.shows.show_debt import ShowDebt 
 import math
 
 
@@ -46,17 +46,17 @@ class DebtScreen(tk.Frame):
         self.search_entry.bind("<KeyRelease>", self.on_search)
 
         # Edit Button
-        self.edit_button = tk.Button(
+        self.view_button  = tk.Button(
             self.top_frame, 
-            text="تعديل", 
+            text="عرض التفاصيل", 
             bg="#295686", 
             fg="white", 
             font=("Arial", 12), 
             width=15,
-            command=self.edit_row
+            command=self.show_debt_details
         )
-        self.edit_button.grid(row=0, column=2, padx=10, sticky="e")
-        self.edit_button.grid_remove()
+        self.view_button.grid(row=0, column=2, padx=10, sticky="e")
+        self.view_button.grid_remove()
 
         # Export Button
         self.export_button = tk.Button(
@@ -214,14 +214,14 @@ class DebtScreen(tk.Frame):
     def on_double_click(self, event):
         selected_item = self.table.selection()
         if selected_item:
-            self.edit_row()
+            self.show_debt_details()
 
     def show_buttons(self, event=None):
         selected_item = self.table.selection()
         if selected_item:
-            self.edit_button.grid()
+            self.view_button.grid()
         else:
-            self.edit_button.grid_remove()
+            self.view_button.grid_remove()
 
     def go_to_previous_page(self):
         if self.current_page > 1:
@@ -242,40 +242,39 @@ class DebtScreen(tk.Frame):
         results = self.service.search_data(search_term) if search_term else self.service.get_all_data()
         self.refresh_table(results)
 
-    def edit_row(self):
+    def show_debt_details(self):
         selected_item = self.table.selection()
-        if selected_item:
-            # جلب بيانات الصف المحدد
-            item_values = self.table.item(selected_item, "values")
-            item_id = item_values[-1]  # الـ ID هو العمود الأول
-            debt_type = item_values[-3]  # نوع الدين (Passports, Umrah, Trips)
-            # print(f"item_id  {item_id}")
-            # print(f"debt_type  {debt_type}")
-            
-            # فتح شاشة التعديل
-            edit_debt_screen = EditDebtScreen(
-                self.master,  # النافذة الرئيسية
-                self.return_to_debt_screen,  # دالة الرجوع إلى الشاشة الرئيسية
-                self.service,  # خدمة الديون
-                item_id,  # معرف الدين
-                debt_type  # نوع الدين
-            )
-            edit_debt_screen.pack(fill=tk.BOTH, expand=True)
-            self.pack_forget()  # إخفاء الشاشة الحالية
-        else:
-            messagebox.showwarning("تحذير", "يرجى تحديد دين لتعديله.")
+        if not selected_item:
+            messagebox.showwarning("تحذير", "يرجى تحديد دين أولاً")
+            return
+
+        item_values = self.table.item(selected_item, "values")
+        debt_id = item_values[-1]
+        debt_type = item_values[-3]
+
+        # إخفاء الإطار الرئيسي
+        self.pack_forget()
+
+        # عرض شاشة التفاصيل
+        self.show_debt_screen = ShowDebt(
+            self.master,
+            debt_id,
+            debt_type,
+            self.service,
+            self.return_to_main_screen
+        )
+
+    def return_to_main_screen(self):
+        # إخفاء شاشة التفاصيل وإظهار الشاشة الرئيسية
+        if hasattr(self, 'show_debt_screen'):
+            self.show_debt_screen.destroy()
+        self.pack(fill=tk.BOTH, expand=True)
+        self.refresh_table()
 
     def return_to_debt_screen(self):
         self.pack(fill=tk.BOTH, expand=True)  # إعادة عرض الشاشة الرئيسية
         self.refresh_table()  # تحديث الجدول لعرض التغييرات
 
-    def delete_row(self):
-        selected_item = self.table.selection()
-        if selected_item:
-            item_id = self.table.item(selected_item, "values")[0]
-            confirm = messagebox.askyesno("تأكيد الحذف", "هل أنت متأكد من الحذف؟")
-            if confirm:
-                self.service.delete_data(item_id)
-                self.refresh_table()
+
     
 #

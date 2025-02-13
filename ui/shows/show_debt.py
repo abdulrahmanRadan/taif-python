@@ -9,7 +9,8 @@ class ShowDebt(tk.Frame):
         self.service = service
         self.debt_id = debt_id
         self.debt_type = debt_type
-        self.return_callback = return_callback  # دالة الرجوع للشاشة الرئيسية
+        self.return_callback = return_callback
+        self.additional_labels = {}  # لتخزين الحقول الإضافية
 
         self.pack(fill=tk.BOTH, expand=True)
         self.create_widgets()
@@ -28,7 +29,7 @@ class ShowDebt(tk.Frame):
                                 font=("Arial", 14),
                                 width=12,
                                 command=self.return_callback)
-        self.back_btn.pack(side=tk.LEFT, padx=10, anchor="w")  # في اليسار تمامًا
+        self.back_btn.pack(side=tk.LEFT, padx=10, anchor="w")
 
         # Title Label (في الوسط)
         title_lbl = tk.Label(header_frame,
@@ -36,7 +37,7 @@ class ShowDebt(tk.Frame):
                             font=("Arial", 20, "bold"),
                             bg="#295686",
                             fg="white")
-        title_lbl.pack(side=tk.LEFT, expand=True, padx=10, anchor="center")  # في الوسط
+        title_lbl.pack(side=tk.LEFT, expand=True, padx=10, anchor="center")
 
         # Add Payment Button (في اليمين تمامًا)
         self.add_btn_header = tk.Button(header_frame,
@@ -46,8 +47,7 @@ class ShowDebt(tk.Frame):
                                         font=("Arial", 14),
                                         width=18,
                                         command=self.show_payment_dialog)
-        self.add_btn_header.pack(side=tk.RIGHT, padx=10, anchor="e")  # في اليمين تمامًا
-
+        self.add_btn_header.pack(side=tk.RIGHT, padx=10, anchor="e")
 
         # Debt Details Section
         details_frame = tk.LabelFrame(self,
@@ -57,9 +57,9 @@ class ShowDebt(tk.Frame):
                                     fg="#2c3e50")
         details_frame.pack(pady=10, padx=20, fill=tk.X)
         
-        # Details Grid
+        # الحقول الأساسية والإضافية في عمودين
         self.details_labels = {}
-        fields = [
+        base_fields = [
             ("رقم الدين:", "id"),
             ("الاسم:", "name"),
             ("النوع:", "type"),
@@ -67,17 +67,31 @@ class ShowDebt(tk.Frame):
             ("المتبقي:", "remaining")
         ]
         
-        for row, (label, key) in enumerate(fields):
-            lbl = tk.Label(details_frame, 
-                        text=label, 
-                        font=("Arial", 12),
-                        bg="white")
+        # الحقول الإضافية
+        additional_fields = self.get_additional_fields()
+        all_fields = base_fields + additional_fields
+
+        # تقسيم الحقول إلى عمودين
+        half = len(all_fields) // 2
+        if len(all_fields) % 2 != 0:
+            half += 1
+
+        # العمود الأول
+        for row, (label, key) in enumerate(all_fields[:half]):
+            lbl = tk.Label(details_frame, text=label, font=("Arial", 12), bg="white")
             lbl.grid(row=row, column=0, padx=20, pady=10, sticky="e")
             
-            val = tk.Label(details_frame, 
-                        font=("Arial", 12, "bold"),
-                        bg="white")
+            val = tk.Label(details_frame, font=("Arial", 12, "bold"), bg="white")
             val.grid(row=row, column=1, padx=20, pady=10, sticky="w")
+            self.details_labels[key] = val
+
+        # العمود الثاني
+        for row, (label, key) in enumerate(all_fields[half:], start=0):
+            lbl = tk.Label(details_frame, text=label, font=("Arial", 12), bg="white")
+            lbl.grid(row=row, column=2, padx=20, pady=10, sticky="e")
+            
+            val = tk.Label(details_frame, font=("Arial", 12, "bold"), bg="white")
+            val.grid(row=row, column=3, padx=20, pady=10, sticky="w")
             self.details_labels[key] = val
 
         # Payments Section
@@ -116,15 +130,57 @@ class ShowDebt(tk.Frame):
         self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
+    def get_additional_fields(self):
+        """إرجاع الحقول الإضافية حسب نوع الدين"""
+        fields_mapping = {
+            "Passports": [
+                ("سعر الحجز", "booking_price"),
+                ("العملة", "currency")
+            ],
+            "Umrah": [
+                ("رقم الجواز", "passport_number"),
+                ("رقم الهاتف", "phone_number")
+            ],
+            "Trips": [
+                ("مكان المغادرة", "from_place"),
+                ("مكان الوصول", "to_place")
+            ]
+        }
+        return fields_mapping.get(self.debt_type, [])
+
     def load_data(self):
-        # Load Debt Details
-        debt_data = self.service.get_by_id(self.debt_id, self.debt_type)
-        if debt_data:
-            formatted = self.service.format_record_data(self.debt_type, debt_data[0])
-            for key, label in self.details_labels.items():
-                label.config(text=formatted.get(key, ""))
-        
-        # Load Payments
+        # جلب البيانات الخام
+        raw_data = self.service.get_by_id(self.debt_id, self.debt_type)
+        if raw_data and len(raw_data) > 0:
+            record = raw_data[0]
+            
+            # تعبئة الحقول الأساسية
+            self.details_labels["id"].config(text=record[0])
+            self.details_labels["name"].config(text=record[1])
+            self.details_labels["type"].config(text=self.debt_type)
+            self.details_labels["date"].config(text=record[2] if self.debt_type == "Passports" else record[9])
+            self.details_labels["remaining"].config(text=record[8] if self.debt_type == "Passports" else record[7])
+            
+            # تعبئة الحقول الإضافية
+            additional_fields = self.get_additional_fields()
+            for _, key in additional_fields:
+                if self.debt_type == "Passports":
+                    if key == "booking_price":
+                        self.details_labels[key].config(text=record[4])
+                    elif key == "currency":
+                        self.details_labels[key].config(text=record[11])
+                elif self.debt_type == "Umrah":
+                    if key == "passport_number":
+                        self.details_labels[key].config(text=record[2])
+                    elif key == "phone_number":
+                        self.details_labels[key].config(text=record[3])
+                elif self.debt_type == "Trips":
+                    if key == "from_place":
+                        self.details_labels[key].config(text=record[3])
+                    elif key == "to_place":
+                        self.details_labels[key].config(text=record[4])
+
+        # تحميل المدفوعات
         self.tree.delete(*self.tree.get_children())
         payments = self.service.get_payments(self.debt_type, self.debt_id)
         for payment in payments:
@@ -137,14 +193,12 @@ class ShowDebt(tk.Frame):
 
     def show_payment_dialog(self):
         self.pack_forget()
-        
-        # 2. إنشاء نافذة الدفعة مع تحديد دالة الرجوع
         self.payment_dialog = PaymentDialog(
             self.master,
             self.debt_type,
             self.debt_id,
             self.service,
-            self.on_payment_dialog_closed  # دالة تُستدعى عند إغلاق PaymentDialog
+            self.on_payment_dialog_closed
         )
 
     def return_to_show_debt(self):
@@ -153,8 +207,6 @@ class ShowDebt(tk.Frame):
 
     def on_payment_dialog_closed(self):
         """الدالة التي تُستدعى عند الرجوع من PaymentDialog"""
-        # 1. إعادة عرض شاشة ShowDebt
         self.pack(fill=tk.BOTH, expand=True)
-        
-        # 2. تحديث البيانات إذا لزم الأمر
         self.load_data()
+# 

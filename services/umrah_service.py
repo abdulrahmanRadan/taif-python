@@ -116,7 +116,7 @@ class UmrahService:
                 f"{record_list[7]} {self.format_currency(record_list[12])}",  # للوكيل (المدفوع)
                 f"{record_list[8]} {self.format_currency(record_list[12])}",  # الصافي (المتبقي)
                 days_left,        # تاريخ الرحلة (عدد الأيام المتبقية)
-                self.format_currency(record_list[12])  # المكتب (العملة)
+                record_list[11]  # المكتب (العملة)
             )
             
             updated_data.append(formatted_row)

@@ -12,10 +12,12 @@ class EditTicketScreen(tk.Frame):
 
         # Variables
         self.net_amount = tk.StringVar(value="0")
+        self.paid_amount = tk.StringVar(value="0")
+        self.remaining_amount = tk.StringVar(value="0")
 
         # Create Widgets
         self.create_widgets()
-        self.populate_fields()  # تعبئة الحقول بالبيانات المحددة
+        self.populate_fields()
 
     def create_widgets(self):
         self.apply_styles()
@@ -74,9 +76,14 @@ class EditTicketScreen(tk.Frame):
         # المكتب
         self.office_combobox = self.create_field(outer_frame, "المكتب", row=6, column=0, combobox_values=["مكتبنا", "الوادي", "طايف"])
 
+        # الحقول الجديدة
+        self.paid_entry = self.create_field(outer_frame, "المدفوع", row=6, column=2, entry_var=self.paid_amount)
+        self.remaining_amount_label = self.create_field(outer_frame, "المتبقي", row=7, column=0, label_var=self.remaining_amount)
+        self.paid_entry.bind("<KeyRelease>", self.calculate_remaining_amount)
+
         # زر الحفظ
         save_button = ttk.Button(outer_frame, text="حفظ التعديلات", style="Blue.TButton", width=50, command=self.save)
-        save_button.grid(row=7, column=0, columnspan=4, pady=20)
+        save_button.grid(row=8, column=0, columnspan=4, pady=20)
 
         for i in range(4):
             outer_frame.grid_columnconfigure(i, weight=1, uniform="col")
@@ -115,57 +122,83 @@ class EditTicketScreen(tk.Frame):
         self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
 
     def calculate_net(self, event=None):
-        """
-        حساب الصافي تلقائيًا.
-        """
         try:
             amount = float(self.amount_entry.get())
             agent = float(self.agent_entry.get())
             net = self.service.calculate_net_amount(amount, agent)
             self.net_amount.set(f"{net:.2f}")
+            self.calculate_remaining_amount()
         except ValueError:
             self.net_amount.set("0.00")
 
+    def calculate_remaining_amount(self, event=None):
+        try:
+            amount = float(self.amount_entry.get())
+            paid = float(self.paid_amount.get())
+            remaining = max(0, amount - paid)
+            self.remaining_amount.set(f"{remaining:.2f}")
+        except ValueError:
+            self.remaining_amount.set("0.00")
+
     def populate_fields(self):
-        """
-        تعبئة الحقول بالبيانات المستردة من قاعدة البيانات.
-        """
         if self.data:
-            self.name_entry.insert(0, self.data[1])  # الاسم
-            self.passport_number_entry.insert(0, self.data[2])  # رقم الجواز
-            self.from_place_entry.insert(0, self.data[3])  # من مدينة
-            self.to_place_entry.insert(0, self.data[4])  # إلى مدينة
-            self.company_entry.insert(0, self.data[5])  # الشركة
-            self.amount_entry.insert(0, self.data[6])  # المبلغ
-            self.currency_combobox.set(self.data[7])  # العملة
-            self.agent_entry.insert(0, self.data[8])  # للوكيل
-            self.net_amount.set(self.data[9])  # الصافي
-            self.trip_date_entry.set_date(self.data[10])  # تاريخ الرحلة
-            self.office_combobox.set(self.data[11])  # المكتب
+            self.name_entry.insert(0, self.data[1])
+            self.passport_number_entry.insert(0, self.data[2])
+            self.from_place_entry.insert(0, self.data[3])
+            self.to_place_entry.insert(0, self.data[4])
+            self.company_entry.insert(0, self.data[5])
+            self.amount_entry.insert(0, self.data[6])
+            self.currency_combobox.set(self.data[7])
+            self.agent_entry.insert(0, self.data[8])
+            self.net_amount.set(self.data[9])
+            self.trip_date_entry.set_date(self.data[10])
+            self.office_combobox.set(self.data[11])
+            self.paid_amount.set(self.data[12])
+            self.remaining_amount.set(self.data[13])
 
     def save(self):
-        currency_map = {"ر.ي": "1", "ر.س": "2", "دولار": "3"}
-        currency = currency_map.get(self.currency_combobox.get(), "1")
+        if not self.validate_fields():
+            return
 
-        data = (
-            self.data[0],  # ID من self.data
-            self.name_entry.get(),
-            self.passport_number_entry.get(),
-            self.from_place_entry.get(),
-            self.to_place_entry.get(),
-            self.company_entry.get(),
-            float(self.amount_entry.get()),
-            currency,
-            float(self.agent_entry.get()),
-            float(self.net_amount.get()),
-            self.trip_date_entry.get_date().strftime("%Y-%m-%d"),
-            self.office_combobox.get()
-        )
+        try:
+            currency_map = {"ر.ي": "1", "ر.س": "2", "دولار": "3"}
+            data = (
+                self.data[0],  # ID
+                self.name_entry.get(),
+                self.passport_number_entry.get(),
+                self.from_place_entry.get(),
+                self.to_place_entry.get(),
+                self.company_entry.get(),
+                float(self.amount_entry.get()),
+                currency_map.get(self.currency_combobox.get(), "1"),
+                float(self.agent_entry.get()),
+                float(self.net_amount.get()),
+                self.trip_date_entry.get_date().strftime("%Y-%m-%d"),
+                self.office_combobox.get(),
+                float(self.paid_amount.get()),
+                float(self.remaining_amount.get())
+            )
+        except ValueError as e:
+            messagebox.showerror("خطأ", f"قيم غير صحيحة: {str(e)}")
+            return
 
         success, message = self.service.update_ticket_data(data, self.master)
         if success:
             messagebox.showinfo("نجاح", message)
-            self.grid_remove()  # إخفاء واجهة التعديل
             self.return_callback()
         else:
             messagebox.showerror("خطأ", message)
+
+    def validate_fields(self):
+        required_fields = [
+            (self.name_entry, "الاسم"),
+            (self.passport_number_entry, "رقم الجواز"),
+            (self.amount_entry, "المبلغ"),
+            (self.paid_entry, "المدفوع")
+        ]
+
+        for field, name in required_fields:
+            if not field.get().strip():
+                messagebox.showerror("خطأ", f"يرجى ملء حقل {name}")
+                return False
+        return True

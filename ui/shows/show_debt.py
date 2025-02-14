@@ -130,67 +130,6 @@ class ShowDebt(tk.Frame):
         self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
-    def get_additional_fields(self):
-        """إرجاع الحقول الإضافية حسب نوع الدين"""
-        fields_mapping = {
-            "Passports": [
-                ("سعر الحجز", "booking_price"),
-                ("العملة", "currency")
-            ],
-            "Umrah": [
-                ("رقم الجواز", "passport_number"),
-                ("رقم الهاتف", "phone_number")
-            ],
-            "Trips": [
-                ("مكان المغادرة", "from_place"),
-                ("مكان الوصول", "to_place")
-            ]
-        }
-        return fields_mapping.get(self.debt_type, [])
-
-    def load_data(self):
-        # جلب البيانات الخام
-        raw_data = self.service.get_by_id(self.debt_id, self.debt_type)
-        if raw_data and len(raw_data) > 0:
-            record = raw_data[0]
-            
-            # تعبئة الحقول الأساسية
-            self.details_labels["id"].config(text=record[0])
-            self.details_labels["name"].config(text=record[1])
-            self.details_labels["type"].config(text=self.debt_type)
-            self.details_labels["date"].config(text=record[2] if self.debt_type == "Passports"  else record[9])
-            self.details_labels["remaining"].config(text=record[8] if self.debt_type == "Passports" else record[7])
-            
-            # تعبئة الحقول الإضافية
-            additional_fields = self.get_additional_fields()
-            for _, key in additional_fields:
-                if self.debt_type == "Passports":
-                    if key == "booking_price":
-                        self.details_labels[key].config(text=record[4])
-                    elif key == "currency":
-                        self.details_labels[key].config(text=record[11])
-                elif self.debt_type == "Umrah":
-                    if key == "passport_number":
-                        self.details_labels[key].config(text=record[2])
-                    elif key == "phone_number":
-                        self.details_labels[key].config(text=record[3])
-                elif self.debt_type == "Trips":
-                    if key == "from_place":
-                        self.details_labels[key].config(text=record[3])
-                    elif key == "to_place":
-                        self.details_labels[key].config(text=record[4])
-
-        # تحميل المدفوعات
-        self.tree.delete(*self.tree.get_children())
-        payments = self.service.get_payments(self.debt_type, self.debt_id)
-        for payment in payments:
-            self.tree.insert("", "end", values=(
-                payment["id"],
-                f"{payment['amount']} ريال",
-                payment["payment_date"],
-                payment["payment_method"] or "غير محدد"
-            ))
-
     def show_payment_dialog(self):
         self.pack_forget()
         self.payment_dialog = PaymentDialog(
@@ -209,4 +148,86 @@ class ShowDebt(tk.Frame):
         """الدالة التي تُستدعى عند الرجوع من PaymentDialog"""
         self.pack(fill=tk.BOTH, expand=True)
         self.load_data()
+    
+    def load_data(self):
+        # جلب البيانات الخام
+        raw_data = self.service.get_by_id(self.debt_id, self.debt_type)
+        if raw_data and len(raw_data) > 0:
+            record = raw_data[0]
+            
+            # تعبئة الحقول الأساسية
+            self.details_labels["id"].config(text=record[0])
+            self.details_labels["name"].config(text=record[1])
+            self.details_labels["type"].config(text=self.debt_type)
+            
+            # تحديد الفهرس الصحيح لكل جدول
+            date_index = {
+                "Passports": 2,  # booking_date
+                "Umrah": 9,      # entry_date
+                "Trips": 10      # trip_date
+            }
+            
+            remaining_index = {
+                "Passports": 8,  # remaining_amount
+                "Umrah": 8,      # remaining_amount
+                "Trips": 13      # remaining_amount
+            }
+            
+            # تعبئة التاريخ والمبلغ المتبقي
+            self.details_labels["date"].config(text=record[date_index[self.debt_type]])
+            self.details_labels["remaining"].config(text=record[remaining_index[self.debt_type]])
+            
+            # تعبئة الحقول الإضافية
+            additional_fields = self.get_additional_fields()
+            for _, key in additional_fields:
+                if self.debt_type == "Passports":
+                    field_index = {
+                        "total_amount": 4,  # booking_price
+                        "paid_amount": 7    # paid_amount
+                    }
+                    self.details_labels[key].config(text=record[field_index[key]])
+                
+                elif self.debt_type == "Umrah":
+                    field_index = {
+                        "total_amount": 6,  # cost
+                        "paid_amount": 7    # paid
+                    }
+                    self.details_labels[key].config(text=record[field_index[key]])
+                
+                elif self.debt_type == "Trips":
+                    field_index = {
+                        "amount": 6,         # paid
+                        "paid": 12  # remaining_amount
+                    }
+                    self.details_labels[key].config(text=record[field_index[key]])
+
+        # تحميل المدفوعات
+        self.tree.delete(*self.tree.get_children())
+        payments = self.service.get_payments(self.debt_type, self.debt_id)
+        for payment in payments:
+            self.tree.insert("", "end", values=(
+                payment["id"],
+                f"{payment['amount']} ريال",
+                payment["payment_date"],
+                payment["payment_method"] or "غير محدد"
+            ))
+        
+
+    def get_additional_fields(self):
+        """إرجاع الحقول الإضافية حسب نوع الدين"""
+        fields_mapping = {
+            "Passports": [
+                ("المبلغ الإجمالي", "total_amount"),
+                ("المبلغ المدفوع", "paid_amount")
+            ],
+            "Umrah": [
+                ("المبلغ الإجمالي", "total_amount"),
+                ("المبلغ المدفوع", "paid_amount")
+            ],
+            "Trips": [
+                ("المبلغ الاجمالي", "amount"),
+                ("المبلغ المدفوع", "paid")
+            ]
+        }
+        return fields_mapping.get(self.debt_type, [])
 # 

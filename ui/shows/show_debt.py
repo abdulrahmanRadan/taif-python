@@ -16,6 +16,9 @@ class ShowDebt(tk.Frame):
         self.create_widgets()
         self.load_data()
 
+        if hasattr(master, 'register_child_frame'):
+            master.register_child_frame(self)
+
     def create_widgets(self):
         # Header Section
         header_frame = tk.Frame(self, bg="#295686", height=80)
@@ -140,14 +143,15 @@ class ShowDebt(tk.Frame):
             self.on_payment_dialog_closed
         )
 
+
     def return_to_show_debt(self):
         self.pack(fill=tk.BOTH, expand=True)
         self.load_data()
 
     def on_payment_dialog_closed(self):
         """الدالة التي تُستدعى عند الرجوع من PaymentDialog"""
-        self.pack(fill=tk.BOTH, expand=True)
-        self.load_data()
+        self.safe_destroy()
+        self.return_callback()
     
     def load_data(self):
         # جلب البيانات الخام
@@ -230,4 +234,12 @@ class ShowDebt(tk.Frame):
             ]
         }
         return fields_mapping.get(self.debt_type, [])
+
+    def safe_destroy(self):
+        """إغلاق آمن للصفحة"""
+        if self.winfo_exists():
+            self.destroy()
+        if hasattr(self, 'payment_dialog') and self.payment_dialog.winfo_exists():
+            self.payment_dialog.safe_destroy()
+
 # 

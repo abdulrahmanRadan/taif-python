@@ -14,6 +14,9 @@ class PaymentDialog(tk.Frame):
         self.pack(fill=tk.BOTH, expand=True)
         self.create_widgets()
 
+        if hasattr(master, 'register_child_frame'):
+            master.register_child_frame(self)
+
     def create_widgets(self):
         # Header Section
         header_frame = tk.Frame(self, bg="#2980b9", height=80)
@@ -138,11 +141,11 @@ class PaymentDialog(tk.Frame):
     
     def on_back_clicked(self):
         """الدالة التي تُستدعى عند النقر على زر الرجوع"""
-        # 1. تدمير الإطار الحالي
-        self.unbind_all("<MouseWheel>")
-        self.destroy()
-        
-        # 2. إعادة عرض الشاشة السابقة
+        self.safe_destroy()
         self.return_callback()
-        
+
+    def safe_destroy(self):
+        """إغلاق آمن للصفحة"""
+        if self.winfo_exists():
+            self.destroy()    
 # لا تستدعي self.return_callback() هنا

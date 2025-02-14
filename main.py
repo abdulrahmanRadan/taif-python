@@ -23,6 +23,7 @@ class MainApp(tk.Tk):
 
         self.title("مكتب طائف السالمي")
         self.geometry("800x600")
+        self.current_child_frames = []  # قائمة لتتبع الصفحات الفرعية
         
         # Header (Navigation Bar)
         self.header_frame = tk.Frame(self, bg="#38B6A5", height=60)
@@ -111,6 +112,8 @@ class MainApp(tk.Tk):
 
     def show_frame(self, frame_class, button):
         """Switch between frames (pages) and highlight the active button."""
+        self.close_all_child_frames()
+
         if self.current_frame:
             self.current_frame.destroy()
         
@@ -126,6 +129,16 @@ class MainApp(tk.Tk):
         self.current_frame = frame_class(self)
         self.current_frame.pack(fill=tk.BOTH, expand=True)
 
+    def close_all_child_frames(self):
+        """إغلاق جميع الصفحات الفرعية"""
+        for frame in self.current_child_frames:
+            if hasattr(frame, 'safe_destroy'):
+                frame.safe_destroy()
+        self.current_child_frames = []
+
+    def register_child_frame(self, frame):
+        """تسجيل الصفحات الفرعية الجديدة"""
+        self.current_child_frames.append(frame)
 
 if __name__ == "__main__":
     app = MainApp()

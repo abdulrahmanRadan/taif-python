@@ -6,5 +6,5 @@ from ui.base_screen import BaseScreen
 
 class UmrahScreen(BaseScreen):
     def __init__(self, master):
-        columns = ("ID", "الاسم", "رقم الجواز", "من", "إلى", "الشركة", "المبلغ", "للوكيل", "الصافي", "تاريخ الرحلة", "المكتب")
+        columns = ("ID", "الاسم", "رقم الجواز", "من", "إلى", "الشركة", "المبلغ", "المبلغ المدفوع", "المتبقي", "تاريخ الرحلة", "المكتب")
         super().__init__(master, UmrahService(master), AddUmrahScreen, EditUmrahScreen, columns)

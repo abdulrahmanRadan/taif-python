@@ -134,10 +134,32 @@ class DatabaseManager:
     def close(self):
         self.connection.close()
 
-    # def add_columns_to_trips(self):
-    #     try:
-    #         self.execute_query("ALTER TABLE Trips ADD COLUMN paid REAL")
-    #         self.execute_query("ALTER TABLE Trips ADD COLUMN remaining_amount REAL")
-    #         print("تمت إضافة الأعمدة بنجاح.")
-    #     except sqlite3.OperationalError as e:
-    #         print(f"خطأ أثناء إضافة الأعمدة: {e}")
+    def update_by_index(self, table_name, identifier, column_indexes, new_values):
+        """
+        تحديث أعمدة محددة بناءً على الفهرس (index).
+        
+        :param table_name: اسم الجدول
+        :param identifier: معرف الصف (id)
+        :param column_indexes: قائمة بفهارس الأعمدة المراد تحديثها
+        :param new_values: قائمة بالقيم الجديدة المقابلة للفهارس
+        """
+        try:
+            # الحصول على أسماء الأعمدة من الفهرس
+            self.cursor.execute(f"PRAGMA table_info({table_name})")
+            columns_info = self.cursor.fetchall()
+            column_names = [col[1] for col in columns_info]  # اسم العمود في الفهرس 1
+
+            # بناء set_clause
+            set_clause = ', '.join([f"{column_names[idx]} = ?" for idx in column_indexes])
+            
+            # بناء الاستعلام
+            query = f"UPDATE {table_name} SET {set_clause} WHERE id = ?"
+            
+            # تنفيذ الاستعلام
+            self.execute_query(query, tuple(new_values) + (identifier,))
+            return True, "تم التحديث بنجاح"
+        
+        except Exception as e:
+            return False, f"حدث خطأ أثناء التحديث: {str(e)}"
+    
+# 

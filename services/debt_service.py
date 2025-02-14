@@ -7,16 +7,7 @@ class DebtService:
         self.db_manager = DatabaseManager()
         self.search_manager = SearchManager()
     
-    def get_payments(self, debt_type, debt_id):
-        """
-        استرجاع جميع المدفوعات المرتبطة بدين معين.
-        """
-        return self.db_manager.select("Payments",
-            debt_type=debt_type,
-            debt_id=debt_id
-        )
     
-
     def get_all_data(self):
         """
         استرجاع جميع الديون غير المسددة مع المدفوعات المرتبطة بكل دين.
@@ -61,7 +52,7 @@ class DebtService:
                 "date": record[9] if isinstance(record[9], str) else "",
                 "ym_paid": f"{record[6]} ر.ي" if record[-1] == '1' else "0 ",
                 "sm_paid": f"{record[6]} ر.س" if record[-1] == '2' else "0 ",
-                "remaining": record[7],
+                "remaining": record[8],
             }
         elif table == "Trips":
             return {
@@ -101,16 +92,6 @@ class DebtService:
     def export_to_excel(self):
         print("hello wrold")
 
-    def add_payment(self, debt_type, debt_id, amount, payment_date, payment_method):
-        """إضافة عملية دفع جديدة"""
-        # print(f"ddd ${debt_type, debt_id, amount, payment_date, payment_method}")
-        return self.db_manager.insert("Payments", **{
-            "debt_type": debt_type,
-            "debt_id": debt_id,
-            "amount": amount,
-            "payment_date": payment_date,
-            "payment_method": payment_method,
-        })
 
     def get_payments(self, debt_type, debt_id):
         """استرجاع المدفوعات مع التنسيق الجديد"""
@@ -124,3 +105,73 @@ class DebtService:
             "payment_date": p[4],
             "payment_method": p[5]
         } for p in payments]
+    
+    def add_payment(self, debt_type, debt_id, amount, payment_date, payment_method):
+        """إضافة عملية دفع جديدة وتحديث المبالغ"""
+        try:
+            self.db_manager.connection.execute("BEGIN TRANSACTION")
+            
+            # 1. إضافة الدفعة الجديدة
+            self.db_manager.insert("Payments", **{
+                "debt_type": debt_type,
+                "debt_id": debt_id,
+                "amount": amount,
+                "payment_date": payment_date,
+                "payment_method": payment_method,
+            })
+
+            # 2. تحديث الجدول الرئيسي
+            table_indexes = {
+                "Passports": {
+                    "price_col": 4,  # booking_price
+                    "paid_col": 7,   # paid_amount
+                    "remaining_col": 8  # remaining_amount
+                },
+                "Umrah": {
+                    "price_col": 6,  # cost
+                    "paid_col": 7,   # paid
+                    "remaining_col": 8  # remaining_amount
+                },
+                "Trips": {
+                    "price_col": 6,  # amount
+                    "paid_col": 12,  # paid
+                    "remaining_col": 13  # remaining_amount
+                }
+            }
+
+            # الحصول على البيانات الحالية
+            current_data = self.db_manager.select(debt_type, id=debt_id)[0]
+            price_idx = table_indexes[debt_type]["price_col"]
+            paid_idx = table_indexes[debt_type]["paid_col"]
+
+            total_price = current_data[price_idx]
+            current_paid = current_data[paid_idx]
+
+            # حساب القيم الجديدة
+            new_paid = float(current_paid) + float(amount)
+            new_remaining = float(total_price) - float(new_paid)
+            print(f"new_paid {new_paid}")
+            print(f"new_remaining {new_remaining}")
+
+            # تحديث الأعمدة باستخدام الفهرس
+            success, message = self.db_manager.update_by_index(
+                table_name=debt_type,
+                identifier=debt_id,
+                column_indexes=[
+                    table_indexes[debt_type]["paid_col"],  # فهرس العمود المدفوع
+                    table_indexes[debt_type]["remaining_col"]  # فهرس العمود المتبقي
+                ],
+                new_values=[new_paid, new_remaining]
+            )
+
+            if not success:
+                raise Exception(message)
+
+            self.db_manager.connection.commit()
+            return True, "تمت إضافة الدفعة وتحديث الحسابات بنجاح"
+
+        except Exception as e:
+            self.db_manager.connection.rollback()
+            return False, f"فشلت العملية: {str(e)}"
+        
+#

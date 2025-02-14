@@ -158,7 +158,7 @@ class ShowDebt(tk.Frame):
             self.details_labels["id"].config(text=record[0])
             self.details_labels["name"].config(text=record[1])
             self.details_labels["type"].config(text=self.debt_type)
-            self.details_labels["date"].config(text=record[2] if self.debt_type == "Passports" else record[9])
+            self.details_labels["date"].config(text=record[2] if self.debt_type == "Passports"  else record[9])
             self.details_labels["remaining"].config(text=record[8] if self.debt_type == "Passports" else record[7])
             
             # تعبئة الحقول الإضافية

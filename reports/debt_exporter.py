@@ -116,7 +116,7 @@ class DebtExporter:
 
     def export_to_excel(self):
         try:
-            # جلب البيانات
+            # جلب بيانات الديون
             debts = self.debt_service.get_all_data()
             
             # تحويل إلى DataFrame
@@ -132,6 +132,25 @@ class DebtExporter:
                 "sm_paid": "المبلغ المدفوع (سعودي)",
                 "remaining": "المتبقي"
             }, inplace=True)
+
+            # جلب بيانات المدفوعات لكل دين
+            payments_data = []
+            for debt in debts:
+                payments = self.debt_service.get_payments(debt["type"], debt["id"])
+                if payments:
+                    for payment in payments:
+                        payments_data.append({
+                            "الرقم": debt["id"],
+                            "الدفعة": f"{payment['amount']} ",
+                            "تاريخ الدفعة": payment["payment_date"],
+                            "طريقة الدفع": payment["payment_method"]
+                        })
+
+            # تحويل بيانات المدفوعات إلى DataFrame
+            if payments_data:
+                payments_df = pd.DataFrame(payments_data)
+                # دمج بيانات الديون والمدفوعات
+                df = pd.merge(df, payments_df, on="الرقم", how="left")
 
             # حفظ الملف
             downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")

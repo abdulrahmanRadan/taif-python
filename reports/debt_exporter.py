@@ -154,7 +154,9 @@ class DebtExporter:
 
             # حفظ الملف
             downloads_path = os.path.join(os.path.expanduser("~"), "Downloads")
-            file_path = os.path.join(downloads_path, f"{self.filename.get()}.xlsx")
+            base_filename = f"{self.filename.get()}.xlsx"
+            unique_filename = self.get_unique_filename(base_filename, downloads_path)
+            file_path = os.path.join(downloads_path, unique_filename)
             df.to_excel(file_path, index=False)
 
             # تطبيق التنسيقات
@@ -166,3 +168,17 @@ class DebtExporter:
 
         except Exception as e:
             messagebox.showerror("خطأ", f"حدث خطأ أثناء التصدير: {str(e)}")
+    
+    def get_unique_filename(self, base_name, downloads_path):
+        """
+        توليد اسم ملف فريد إذا كان الملف موجودًا مسبقًا
+        """
+        counter = 1
+        name, ext = os.path.splitext(base_name)
+        new_name = base_name
+        
+        while os.path.exists(os.path.join(downloads_path, new_name)):
+            new_name = f"{name}_{counter}{ext}"
+            counter += 1
+            
+        return new_name

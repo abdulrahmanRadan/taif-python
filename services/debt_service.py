@@ -1,11 +1,14 @@
 from database.database_manager import DatabaseManager
 from database.SearchManager import SearchManager
 from datetime import datetime
+from reports.debt_exporter import DebtExporter
+import tkinter as tk
 
 class DebtService:
     def __init__(self, master):
         self.db_manager = DatabaseManager()
         self.search_manager = SearchManager()
+        self.master = master
     
     
     def get_all_data(self):
@@ -90,7 +93,7 @@ class DebtService:
             return False, f"حدث خطأ أثناء تحديث حالة الدين: {str(e)}"
 
     def export_to_excel(self):
-        print("hello wrold")
+        export_screen = DebtExporter(self.master, self)
 
 
     def get_payments(self, debt_type, debt_id):
